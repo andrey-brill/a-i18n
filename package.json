@@ -18,14 +18,10 @@
 		"test": "ava"
 	},
 	"files": [
-		"index.js",
-		"cli.js"
+		"index.js"
 	],
 	"keywords": [
 		"i18n-cli",
 		"i18n"
-	],
-	"dependencies": {
-		"n-readlines": "^1.0.1"
-	}
+	]
 }
