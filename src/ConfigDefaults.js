@@ -10,7 +10,7 @@ export const ConfigDefaults = {
 
   directory: './',
   debug: false,
-  autoExport: true,
+  autoExport: false,
 
   // next functions added to make possible mocking
   lineReader: (path) => new LineReader(path),

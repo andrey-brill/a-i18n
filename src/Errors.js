@@ -16,6 +16,7 @@ export const ErrorCodes = {
   InvalidKey: 'InvalidKey',
   InvalidOptions: 'InvalidOptions',
   NoI18nFiles: 'NoI18nFiles',
+  NoI18nJsFiles: 'NoI18nJsFiles',
   Export: 'Export'
 };
 
@@ -85,6 +86,13 @@ export class NoI18nFilesError extends I18nError {
     super(ErrorCodes.NoI18nFiles, `I18n files not found to process current action.`)
   }
 }
+
+export class NoI18nJsFileError extends I18nError {
+  constructor() {
+    super(ErrorCodes.NoI18nJsFiles, `.i18n.js file not found to make new export.`)
+  }
+}
+
 
 export class InvalidDirectoryError extends I18nError {
   constructor(directory) {

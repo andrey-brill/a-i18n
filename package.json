@@ -10,14 +10,14 @@
 		"url": "https://github.com/andrey-brill/a-i18n-cli"
 	},
 	"type": "module",
-	"bin": "cli.js",
+	"bin": {
+    "a-i18n": "cli.js"
+  },
 	"engines": {
 		"node": ">=12"
 	},
-	"scripts": {
-		"test": "ava"
-	},
 	"files": [
+    "cli.js",
 		"index.js"
 	],
 	"keywords": [

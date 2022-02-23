@@ -1,8 +1,8 @@
 
 import fs from 'fs';
-import { join, isAbsolute } from 'path';
-import { ErrorCodes, InvalidLineError, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, InvalidDirectoryError, NoI18nFilesError, InvalidKeyError, ExportError } from './Errors.js';
-import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, UpdateLine } from './Constants.js';
+import { join, resolve, isAbsolute } from 'path';
+import { ErrorCodes, InvalidLineError, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, InvalidDirectoryError, NoI18nFilesError, InvalidKeyError, ExportError, NoI18nJsFileError } from './Errors.js';
+import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, UpdateLine, AutoExport, ManualExport } from './Constants.js';
 import { FullKey } from './FullKey.js';
 import { SortedArray } from './SortedArray.js';
 import { ConfigDefaults } from './ConfigDefaults.js';
@@ -85,7 +85,7 @@ export class I18n {
       throw new I18nError(ErrorCodes.InvalidOptions, `Options to ${fnName}() can't be a function.`);
     }
 
-    if (fnName === 'load' || fnName === 'connect' || fnName === 'export') {
+    if (fnName === 'load' || fnName === 'connect') {
       return; // custom validation
     }
 
@@ -263,9 +263,7 @@ export class I18n {
 
   _autoExport() {
     if (this._config.autoExport) {
-      this._lastTimeUpdated = getTime();
-      this.export({ type: 'auto' });
-      this._lastTimeUpdated = getTime(); // if export goes into the same directory
+      this.export({ type: AutoExport });
     }
   }
 
@@ -283,14 +281,19 @@ export class I18n {
       }
 
       for (const file of this._findI18nFiles()) {
+
+        this._lastTimeUpdated = getTime();
+
         const openResult = open(exportOptions, file);
         for (const key of this.state.keys.array) {
-          const t = this.state.updated[FullKey(file.name, key)];
+          const t = this.state.original[FullKey(file.name, key)];
           if (t) {
             write(openResult, t);
           }
         }
         close(openResult, file);
+
+        this._lastTimeUpdated = getTime(); // if export goes into the same directory
       }
     } catch (e) {
       throw new ExportError(e);
@@ -479,20 +482,7 @@ export class I18n {
       return;
     }
 
-    const exportOptions = Object.assign({ type: 'manual', config: this._config }, options);
-
-    if (exportOptions.type === 'auto') {
-      if (!this.state.loaded) {
-        throw new NotLoadedError();
-      }
-    } else {
-      if (!this.state.loaded) {
-        const autoExport = this._config.autoExport;
-        this._config.autoExport = false;
-        this.load();
-        this._config.autoExport = autoExport;
-      }
-    }
+    const exportOptions = Object.assign({ type: ManualExport, config: this._config }, options);
 
     if (this.state.error) {
       throw new NotResolvedError(this.state.error);
@@ -503,8 +493,17 @@ export class I18n {
       return;
     }
 
-    let modulePath = exportFile.path.replace(/\\/g, '/') + '?v=' + this._exportChangeIndex;
-    modulePath = isAbsolute(modulePath) ? modulePath : (modulePath.startsWith('../') ? modulePath : '../' + modulePath);
+    const absolutePath = resolve(exportFile.path);
+    if (!fs.existsSync(absolutePath)) {
+
+      if (exportOptions.type === AutoExport) {
+        return;
+      }
+
+      throw new NoI18nJsFileError();
+    }
+
+    const modulePath = 'file://' + absolutePath.replace(/\\/g, '/') + '?v=' + this._exportChangeIndex;
     import(modulePath).then(module => this._export(exportOptions, module.default));
   }
 
