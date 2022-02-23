@@ -10,6 +10,9 @@
 		"url": "https://github.com/andrey-brill/a-i18n-cli"
 	},
 	"type": "module",
+  "scripts": {
+    "cli": "node ./cli.js"
+  },
 	"bin": {
     "a-i18n": "cli.js"
   },

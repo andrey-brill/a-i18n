@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import I18n from './index.js';
 
-// call example ./cli.js "I18n({ directory: './tests/huge', debug: true }) & load() & export({ type:'custom' })"
 
 const [ _nodePath, _cliPath, ...commands ] = process.argv;
 
@@ -13,7 +12,7 @@ for (const command of commands) {
 const init = actions.shift();
 
 let i18n;
-if (init.indexOf('I18n') === 0) {
+if (init && init.indexOf('I18n') === 0) {
   eval(`i18n = new ${init}`);
 } else {
   i18n = new I18n();

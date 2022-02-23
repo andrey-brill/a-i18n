@@ -1,3 +1,5 @@
+import os from 'os';
+import { NewLineSymbol, NewLineSymbolRegEx } from './Constants.js';
 
 export const getPublicFunctions = (obj) => Object
   .getOwnPropertyNames(obj.__proto__)
@@ -63,4 +65,5 @@ export const detectLocale = (files) => {
   return files;
 };
 
-export const safeValue = (value = '') => value.trim().replace(/\n/g, '\\n');
+export const safeValue = (value = '') => value.trim().replace(/\n/g, NewLineSymbol);
+export const unsafeValue = (value = '') => value.replace(NewLineSymbolRegEx, '\n');

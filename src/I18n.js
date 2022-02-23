@@ -6,7 +6,7 @@ import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSepa
 import { FullKey } from './FullKey.js';
 import { SortedArray } from './SortedArray.js';
 import { ConfigDefaults } from './ConfigDefaults.js';
-import { debug, getPublicFunctions, throttleAction, safeValue, detectLocale, isI18nFile, isI18nJsFile, getTime } from './Utils.js';
+import { debug, getPublicFunctions, throttleAction, safeValue, detectLocale, isI18nFile, isI18nJsFile, getTime, unsafeValue } from './Utils.js';
 
 export class I18n {
 
@@ -286,9 +286,16 @@ export class I18n {
 
         const openResult = open(exportOptions, file);
         for (const key of this.state.keys.array) {
+
           const t = this.state.original[FullKey(file.name, key)];
           if (t) {
-            write(openResult, t);
+
+            const unsafeT = Object.assign({}, t, {
+              value: unsafeValue(t.value),
+              comment: unsafeValue(t.comment)
+            })
+
+            write(openResult, unsafeT);
           }
         }
         close(openResult, file);
