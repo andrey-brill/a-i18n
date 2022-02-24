@@ -1,12 +1,12 @@
 
 import fs from 'fs';
-import { join, resolve, isAbsolute } from 'path';
+import { join, resolve } from 'path';
 import { ErrorCodes, InvalidLineError, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, InvalidDirectoryError, NoI18nFilesError, InvalidKeyError, ExportError, NoI18nJsFileError } from './Errors.js';
 import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, UpdateLine, AutoExport, ManualExport } from './Constants.js';
 import { FullKey } from './FullKey.js';
 import { SortedArray } from './SortedArray.js';
 import { ConfigDefaults } from './ConfigDefaults.js';
-import { debug, getPublicFunctions, throttleAction, safeValue, detectLocale, isI18nFile, isI18nJsFile, getTime, unsafeValue } from './Utils.js';
+import { debug, getPublicFunctions, debounceAction, safeValue, detectLocale, isI18nFile, isI18nJsFile, getTime, unsafeValue, commentLine, valueLine, deleteLine } from './Utils.js';
 
 export class I18n {
 
@@ -34,8 +34,8 @@ export class I18n {
         };
       });
 
-    this._triggerChange = throttleAction(this, this._triggerChange, 0);
-    this._autoExport = throttleAction(this, this._autoExport, 300);
+    this._debounceChange = debounceAction(this, this._debounceChange, 0);
+    this._debounceExport = debounceAction(this, this._debounceExport, 300);
   }
 
   _resetState() {
@@ -174,7 +174,12 @@ export class I18n {
   // removing updates if they don't change the state
   _optimizeUpdates() {
 
-    this._changeUpdates((fullKey) => {
+    const updateKeys = this._updateKeys();
+    if (updateKeys.size === 0) {
+      return;
+    }
+
+    updateKeys.forEach((fullKey) => {
 
       const original = this.state.original[fullKey];
       const updated = this.state.updated[fullKey];
@@ -187,21 +192,11 @@ export class I18n {
         delete this.state.updates.after[fullKey];
       }
     });
-  }
-
-  _changeUpdates(fn) {
-
-    const updateKeys = this._updateKeys();
-    if (updateKeys.size === 0) {
-      return;
-    }
-
-    updateKeys.forEach(fn);
 
     const optimizedKeys = this._updateKeys();
     this.state.updates.length = optimizedKeys.size;
 
-    if (updateKeys.size > 0 && optimizedKeys.size === 0) {
+    if (!silent && updateKeys.size > 0 && optimizedKeys.size === 0) {
       this.save(); // making sure if all updates "reverted" to remove update-lines from files
     }
   }
@@ -233,16 +228,18 @@ export class I18n {
 
   _appendUpdate(fileName, line) {
 
+    this._lastTimeUpdated = getTime();
+
     const updateLine = UpdateLine + line;
 
     this._updateState(fileName, updateLine);
-    this._optimizeUpdates();
+
     this._config.appendLine(this._pathTo(fileName), updateLine);
 
     this._lastTimeUpdated = getTime();
   }
 
-  _triggerChange() {
+  _debounceChange() {
     try {
       if (this._onChange) {
         this._onChange(this._cloneState());
@@ -261,7 +258,7 @@ export class I18n {
     throw new InvalidKeyError(key);
   }
 
-  _autoExport() {
+  _debounceExport() {
     if (this._config.autoExport) {
       this.export({ type: AutoExport });
     }
@@ -325,13 +322,13 @@ export class I18n {
     this._onChange = onChange;
 
     const ignoreChangesTimeoutMs = 1000;
-    const load = throttleAction(this, this.load, 300); // if several updates applied at the same time
+    const load = debounceAction(this, this.load, 300); // if several updates applied at the same time
 
     const watcher = fs.watch(this._config.directory, undefined, (eventType, fileName) => {
 
       if (isI18nJsFile(fileName)) {
         this._exportChangeIndex++;
-        return this._autoExport();
+        return this._debounceExport();
       }
 
       if (isI18nFile(fileName)) {
@@ -429,8 +426,8 @@ export class I18n {
       this.state.loaded = true;
     }
 
-    this._triggerChange();
-    this._autoExport();
+    this._debounceChange();
+    this._debounceExport();
   }
 
   // important to make updates to local files under development
@@ -476,8 +473,8 @@ export class I18n {
     files.forEach(file => { file.writer.close(); });
 
     this._resetUpdates();
-    this._triggerChange();
-    this._autoExport();
+    this._debounceChange();
+    this._debounceExport();
 
     this._lastTimeUpdated = getTime();
   }
@@ -556,7 +553,6 @@ export class I18n {
     this.save();
   }
 
-
   addKey({ key }) {
 
     this._validateKey(key);
@@ -630,10 +626,11 @@ export class I18n {
     if (this.state.keys.remove(key)) {
 
       for (const file of this._findI18nFiles()) {
-        this._appendUpdate(file.name, DeleteKeyLine + key);
+        this._appendUpdate(file.name, deleteLine(key));
       }
 
-      this._triggerChange();
+      this._optimizeUpdates();
+      this._debounceChange();
     }
   }
 
@@ -641,60 +638,86 @@ export class I18n {
 
     this._validateKey(key);
 
-    const line = NotApprovedLine + key + KeyValueSeparator + safeValue(value);
-    this._appendUpdate(fileName, line);
-    this._triggerChange();
+    this._appendUpdate(fileName, valueLine(false, key, value));
+    this._optimizeUpdates();
+    this._debounceChange();
   }
 
   updateApproved({ fileName, key, approved = false }) {
 
     this._validateKey(key);
 
-    const value = this.state.updated[FullKey(fileName, key)]?.value;
-    const line = (approved ? ApprovedLine : NotApprovedLine) + key + KeyValueSeparator + safeValue(value);
-    this._appendUpdate(fileName, line);
-    this._triggerChange();
+    const fileNames = [];
+    if (fileName) {
+      fileNames.push(fileName);
+    } else {
+      fileNames = this._findI18nFiles().map(f => f.name);
+    }
+
+    for (const fName of fileNames) {
+      const value = this.state.updated[FullKey(fName, key)]?.value;
+      this._appendUpdate(fName, valueLine(approved, key, value));
+    }
+
+    this._optimizeUpdates();
+    this._debounceChange();
   }
 
   updateComment({ fileName, key, comment }) {
 
     this._validateKey(key);
 
-    const line = CommentLine + key + KeyValueSeparator + safeValue(comment);
-    this._appendUpdate(fileName, line);
-    this._triggerChange();
+    this._appendUpdate(fileName, commentLine(key, comment));
+    this._optimizeUpdates();
+    this._debounceChange();
   }
 
   updateTranslation({ fileName, key, value, comment, approved = false }) {
 
     this._validateKey(key);
 
-    const commentLine = CommentLine + key + KeyValueSeparator + safeValue(comment);
-    const valueLine = (approved ? ApprovedLine : NotApprovedLine) + key + KeyValueSeparator + safeValue(value);
-    this._appendUpdate(fileName, commentLine);
-    this._appendUpdate(fileName, valueLine);
-    this._triggerChange();
+    this._appendUpdate(fileName, commentLine(key, comment));
+    this._appendUpdate(fileName, valueLine(approved, key, value));
+    this._optimizeUpdates();
+    this._debounceChange();
   }
 
-  revert({ fileName, key }) {
+  revertUpdates({ fileName, key }) {
 
-    this._changeUpdates(fullKey => {
+    const updateKeys = this._updateKeys();
+    if (updateKeys.size === 0) {
+      return;
+    }
+
+    const files =  this._findI18nFiles();
+
+    for (const fullKey of updateKeys) {
 
       const splitKey = FullKey.split(fullKey);
 
-      if ((fileName && fileName !== splitKey[0]) || (key && key !== splitKey[1])) {
+      const sameFileName = fileName === splitKey.fileName;
+      const sameKey = key === splitKey.key;
+
+      if (
+        (fileName && key && (!sameFileName || !sameKey)) ||
+        (fileName && !key && !sameFileName) ||
+        (!fileName && key && !sameKey)
+        ) {
         return;
       }
 
       const original = this.state.original[fullKey];
       if (original) {
-        this.state.updated[fullKey] = Object.assign({}, original);
+        this._appendUpdate(splitKey.fileName, commentLine(splitKey.key, original.comment));
+        this._appendUpdate(splitKey.fileName, valueLine(original.approved, splitKey.key, original.comment));
       } else {
-        delete this.state.updated[fullKey];
+        for (const file of files) {
+          this._appendUpdate(file.name, deleteLine(splitKey.key));
+        }
       }
 
-      delete this.state.updates.after[fullKey];
-      delete this.state.updates.before[fullKey];
-    });
+    };
+
+    this._optimizeUpdates();
   }
 }

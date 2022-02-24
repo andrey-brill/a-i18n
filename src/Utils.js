@@ -1,5 +1,6 @@
-import os from 'os';
-import { NewLineSymbol, NewLineSymbolRegEx } from './Constants.js';
+
+import { ApprovedLine, CommentLine, DeleteKeyLine, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine } from './Constants.js';
+
 
 export const getPublicFunctions = (obj) => Object
   .getOwnPropertyNames(obj.__proto__)
@@ -31,7 +32,7 @@ export const debug = (obj) => getPublicFunctions(obj)
     };
   });
 
-export const throttleAction = (obj, callback, time) => {
+export const debounceAction = (obj, callback, time) => {
 
   let waiting = false;
 
@@ -67,3 +68,8 @@ export const detectLocale = (files) => {
 
 export const safeValue = (value = '') => value.trim().replace(/\n/g, NewLineSymbol);
 export const unsafeValue = (value = '') => value.replace(NewLineSymbolRegEx, '\n');
+
+
+export const commentLine = (key, comment) => CommentLine + key + KeyValueSeparator + safeValue(comment);
+export const valueLine = (approved, key, value) => (approved ? ApprovedLine : NotApprovedLine) + key + KeyValueSeparator + safeValue(value);
+export const deleteLine = (key) => DeleteKeyLine + key;
