@@ -1,4 +1,4 @@
-## a-i18n-node
+## a-i18n
 
 > Developer-friendly i18n
 
@@ -14,9 +14,9 @@ __Example:__
 
 ### Spread
 
-- __node__ - core for NodeJs
-- __vscode__ - plugin for VS Code [Coming soon](#)
-- __webpack__ - plugin for Webpack [Coming soon](#)
+- __[node](a-i18n-node)__ - core for NodeJs
+- __[vscode](a-i18n-vscode)__ - plugin for VS Code
+- __[webpack](a-i18n-webpack)__ - plugin for Webpack
 
 ### Main features
 
@@ -29,41 +29,38 @@ __Example:__
   - context of text, improve translation
 - Approved mark `+` or `-`
   - approves follows texts
-  - additional check if approved text was changed
+  - give additional check if approved text was changed
 - Backlogging updates `*...`
   - merging will be blocked until updates not saved
 - Exporter `.i18n.js`
   - any format of i18n can be supported to combine with other `t(key)`-libs
   - any prof-reading services can be used
-- CLI
-  - `npm link` && `a-i18n "I18n({ directory: './tests/huge', debug: true }) & load() & export({ type: 'custom' })"`
-  - `npm run cli load() & export({ type: 'custom' })"`
-  - `node ./cli.js "I18n({ autoExport: true }) & load()"`
-
-> __NB!__ If you don't use any CI or build-processing you will probably need one
 
 ### How to start using a-i18n?
 
-- Develop and run converter from existing format to `.i18n`
-- Develop exporter `.i18n.js` to required format
+- Convert current translations to `.i18n` files
+- Develop exporter `.i18n.js` to required format(s)
 - With CI:
   - Add exported files and directory to `.gitignore`
   - Add build step to CI to export texts on `build` or `push`
 - Without CI:
-  - Use [__vscode__](#) plugin
+  - Use [vscode](a-i18n-vscode) plugin
 
 ### Specification
 
 I18n-file name:
 
 ```js
-/^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
+const FileName = /^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
+// en.i18n
+// en-GB.i18n
+// client_en-US.i18n
 ```
 
 I18n-file line:
 
 ```js
-/^\*?[+-/#]([^=]+)=(.*)$/
+const KeyValue = /^\*?[+-/#]([^=]+)=(.*)$/
 // match.group[1] == key
 // match.group[2] == value
 ```
@@ -71,15 +68,10 @@ I18n-file line:
 Legend of symbols:
 
 - `=` - key-value separator
-- `\_` - new line symbol
+  - `\_` - new line symbol in value
 - `/` - comment line
 - `+` - approved text line
 - `-` - not approved text line
 - `*` - incoming updates
   - `#` - delete line
 
-## Install
-
-```
-$ npm install a-i18n-node
-```
