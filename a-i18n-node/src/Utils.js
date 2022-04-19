@@ -59,8 +59,8 @@ export const isI18nJsFile = (fileName) => fileName === '.i18n.js';
 export const detectLocale = (files) => {
 
   files.forEach(f => {
-    const match = f.name.match(/.*[^a-zA-Z]?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/);
-    f.locale = match ? match[1] + (match[2] || '') : undefined;
+    const match = f.name.match(/^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/);
+    f.locale = match ? match[2] + (match[3] || '') : undefined;
   });
 
   return files;

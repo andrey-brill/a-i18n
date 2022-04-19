@@ -12,9 +12,11 @@ __Example:__
 +welcome.approved.quote=If It Works Don't Touch It.
 ```
 
-### Plugins
+### Spread
 
-__VSCODE__ - [Coming soon](#)
+- __node__ - core for NodeJs
+- __vscode__ - plugin for VS Code [Coming soon](#)
+- __webpack__ - plugin for Webpack [Coming soon](#)
 
 ### Main features
 
@@ -24,7 +26,7 @@ __VSCODE__ - [Coming soon](#)
   - possible editing file without any external editor
   - `\n` will be replaced with `\_` (spell checking works correctly)
 - Comment line `/`
-  - V.2 text in context, that can be auto translated much better
+  - context of text, improve translation
 - Approved mark `+` or `-`
   - approves follows texts
   - additional check if approved text was changed
@@ -42,19 +44,20 @@ __VSCODE__ - [Coming soon](#)
 
 ### How to start using a-i18n?
 
-> `≈1 hour` estimation for existing setup (`≈30 min` from scratch)
-
-- Make converter from existing format to `.i18n` _(needed once)_
-- Make exporter from `.i18n.js` to required format _(will be used often automatically)_
-- Add exported files / directory to `.gitignore`
-- Add build step to CI to export texts on `build` or `push`
+- Develop and run converter from existing format to `.i18n`
+- Develop exporter `.i18n.js` to required format
+- With CI:
+  - Add exported files and directory to `.gitignore`
+  - Add build step to CI to export texts on `build` or `push`
+- Without CI:
+  - Use [__vscode__](#) plugin
 
 ### Specification
 
 I18n-file name:
 
 ```js
-/.*[^a-zA-Z]?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
+/^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
 ```
 
 I18n-file line:
@@ -67,13 +70,13 @@ I18n-file line:
 
 Legend of symbols:
 
+- `=` - key-value separator
 - `\_` - new line symbol
+- `/` - comment line
 - `+` - approved text line
 - `-` - not approved text line
-- `/` - comment line
 - `*` - incoming updates
   - `#` - delete line
-- `=` - key-value separator
 
 ## Install
 
