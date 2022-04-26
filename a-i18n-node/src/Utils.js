@@ -32,7 +32,7 @@ export const debug = (obj) => getPublicFunctions(obj)
     };
   });
 
-export const debounceAction = (obj, callback, time) => {
+export const debounceAction = (obj, callback, time, errorHandler) => {
 
   let waiting = false;
 
@@ -44,7 +44,11 @@ export const debounceAction = (obj, callback, time) => {
 
     waiting = true;
     setTimeout(function () {
-      callback.apply(obj, options);
+      try {
+        callback.apply(obj, options);
+      } catch (error) {
+        errorHandler(error);
+      }
       waiting = false;
     }, time);
 

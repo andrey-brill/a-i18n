@@ -11,10 +11,6 @@ import { debug, getPublicFunctions, debounceAction, safeValue, detectLocale, isI
 export class I18n {
 
   constructor(config) {
-    this.initialize(config); // making possible override constructor if needed
-  }
-
-  initialize(config) {
 
     this._exportChangeIndex = 0;
     this._lastTimeUpdated = 0;
@@ -29,14 +25,25 @@ export class I18n {
     getPublicFunctions(this)
       .forEach(([fn, fnName]) => {
         this[fnName] = (options = {}) => {
-          this._validateAction(fnName, options);
-          fn.call(this, options);
+          try {
+            this._validateAction(fnName, options);
+            fn.call(this, options);
+          } catch (error) {
+            this._config.errorHandler(error);
+          }
         };
       });
 
-    this._debounceChange = debounceAction(this, this._debounceChange, 0);
-    this._debounceExport = debounceAction(this, this._debounceExport, 300);
+    // making possible edit autoExport dynamically
+    Object.defineProperty(this, 'autoExport', {
+      get: function() { return this._config.autoExport; },
+      set: function(autoExport) { this._config.autoExport = autoExport; }
+    });
+
+    this._debounceChange = debounceAction(this, this._debounceChange, 0, this._config.errorHandler);
+    this._debounceExport = debounceAction(this, this._debounceExport, 300, this._config.errorHandler);
   }
+
 
   _resetState() {
 
@@ -259,7 +266,7 @@ export class I18n {
   }
 
   _debounceExport() {
-    if (this._config.autoExport) {
+    if (this.autoExport) {
       this.export({ type: AutoExport });
     }
   }
@@ -322,7 +329,7 @@ export class I18n {
     this._onChange = onChange;
 
     const ignoreChangesTimeoutMs = 1000;
-    const load = debounceAction(this, this.load, 300); // if several updates applied at the same time
+    const debounceLoad = debounceAction(this, this.load, 300, this._config.errorHandler); // if several updates applied at the same time
 
     const watcher = fs.watch(this._config.directory, undefined, (eventType, fileName) => {
 
@@ -333,7 +340,7 @@ export class I18n {
 
       if (isI18nFile(fileName)) {
         if (this._lastTimeUpdated + ignoreChangesTimeoutMs < getTime()) {
-          load();
+          debounceLoad();
         }
       }
     });

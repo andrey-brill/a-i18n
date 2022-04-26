@@ -12,12 +12,14 @@ export const ConfigDefaults = {
   debug: false,
   autoExport: false,
 
+  errorHandler: (error) => { throw error; },
+  exporter: undefined, // () => export module { validate(), open(), write(), close() }
+
   // next functions added to make possible mocking
   lineReader: (path) => new LineReader(path),
   lineWriter: (path) => new LineWriter(path),
   appendLine: (path, line) => fs.appendFileSync(path, line + os.EOL),
   filesIn: (directory) => fs.readdirSync(directory),
   createFile: (path) => fs.closeSync(fs.openSync(path, 'w')),
-  deleteFile: (path) => fs.unlinkSync(path),
-  exporter: undefined // () => export module { validate(), open(), write(), close() }
+  deleteFile: (path) => fs.unlinkSync(path)
 };
