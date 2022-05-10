@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import I18n from './index.js';
+import { I18n } from '../index.js';
 
 
 const [ _nodePath, _cliPath, ...commands ] = process.argv;
@@ -19,6 +19,9 @@ if (init && init.indexOf('I18n') === 0) {
   actions.unshift(init);
 }
 
-for (const action of actions) {
-  eval(`i18n.${action}`);
+if (actions.length > 0) {
+  const first = 'i18m.' + actions.shift();
+  const next = actions.map(action => '.then(() => i18n.' + action + ')').join('');
+  eval(first + next);
 }
+

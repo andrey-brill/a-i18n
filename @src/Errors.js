@@ -11,6 +11,7 @@ export const ErrorCodes = {
   UnappliedChanges: 'UnappliedChanges',
   KeyNotExist: 'KeyNotExist',
   KeyExist: 'KeyExist',
+  InvalidPath: 'InvalidPath',
   InvalidDirectory: 'InvalidDirectory',
   InvalidFile: 'InvalidFile',
   InvalidKey: 'InvalidKey',
@@ -97,6 +98,12 @@ export class NoI18nJsFileError extends I18nError {
 export class InvalidDirectoryError extends I18nError {
   constructor(directory) {
     super(ErrorCodes.InvalidDirectory, `Directory doesn't exist: ${directory}`);
+  }
+}
+
+export class InvalidPathError extends I18nError {
+  constructor(path) {
+    super(ErrorCodes.InvalidPath, `Invalid path: ${path}`);
   }
 }
 

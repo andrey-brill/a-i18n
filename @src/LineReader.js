@@ -8,7 +8,7 @@ const NewLineCode = '\n'.charCodeAt(0);
 
 export default class LineReader {
 
-  constructor(file) {
+  constructor(content) {
 
     this.fd = typeof file === 'number' ? file : fs.openSync(file, 'r');
 

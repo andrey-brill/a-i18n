@@ -30,8 +30,8 @@ __Example:__
 - Approved mark `+` or `-`
   - approves follows texts
   - give additional check if approved text was changed
-- Backlogging updates `*...`
-  - merging will be blocked until updates not saved
+- Backlogging updates in `@en.i18n`
+  - git pull can be done during editing texts
 - Exporter `.i18n.js`
   - any format of i18n can be supported to combine with other `t(key)`-libs
   - any prof-reading services can be used
@@ -52,6 +52,7 @@ I18n-file name:
 
 ```js
 const FileName = /^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
+const BackLogFileName =
 // en.i18n
 // en-GB.i18n
 // client_en-US.i18n
@@ -60,7 +61,7 @@ const FileName = /^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
 I18n-file line:
 
 ```js
-const KeyValue = /^\*?[+-/#]([^=]+)=(.*)$/
+const KeyValue = /^[+-/#]([^=]+)=(.*)$/
 // match.group[1] == key
 // match.group[2] == value
 ```
@@ -72,6 +73,14 @@ Legend of symbols:
 - `/` - comment line
 - `+` - approved text line
 - `-` - not approved text line
-- `*` - incoming updates
-  - `#` - delete line
+- `#` - delete line
 
+### Coding Conventions
+
+```js
+class AClass {
+  __init$() // abstract sync function
+  _export() // private async function (promise)
+  import$() // public sync function
+}
+```

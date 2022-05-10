@@ -1,0 +1,10 @@
+{
+	"name": "a-i18n",
+	"description": "Developer-friendly i18n",
+	"license": "MIT",
+	"repository": "andrey-brill/a-i18n",
+	"author": {
+		"name": "Andrey Brill"
+	},
+	"type": "module"
+}

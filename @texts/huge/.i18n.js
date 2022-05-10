@@ -1,10 +1,14 @@
-import fs from 'fs';
+
+const fs = this.fs;
 
 export default {
+
   validate: (_exportOptions, _state) => {},
+
   open: (_exportOptions, _file) => {
     return {};
   },
+
   write: (openResult, { key, value }) => {
 
     const props = key.split('.');
@@ -23,6 +27,7 @@ export default {
 
     o[lastProp] = value;
   },
+
   close: (openResult, file) => {
     fs.writeFileSync('./tests/export/' + file.name.replace('.i18n', '.json'), JSON.stringify(openResult));
   }
