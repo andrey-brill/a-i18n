@@ -1,8 +1,8 @@
 
-import { ApprovedLine, BacklogI18n, CommentLine, DeleteKeyLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine } from './Constants.js';
+import { ApprovedLine, BacklogI18n, CommentLine, DeleteKeyLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine, RootDirectory } from './Constants.js';
 
 
-export const debounceAction$ = (obj, callback, time, errorHandler) => {
+export const debounceAction$ = (obj, callback, time) => {
 
   let waiting = false;
 
@@ -14,11 +14,7 @@ export const debounceAction$ = (obj, callback, time, errorHandler) => {
 
     waiting = true;
     setTimeout(function () {
-      try {
-        callback.apply(obj, options);
-      } catch (error) {
-        errorHandler(error);
-      }
+      callback.apply(obj, options);
       waiting = false;
     }, time);
 
@@ -54,4 +50,21 @@ export const splitFK$ = (fullKey) => fullKey.split(FullKeySeparator);
 
 export const endWithSlash$ = (path = '') => {
   return path.endsWith('/') ? path : (path.endsWith('\\') ? path.substring(0, path.length - 1) + '/' : path + '/');
+}
+
+export const toPromise = (obj) => {
+
+  if (obj && obj.then) return obj;
+
+  if (obj && typeof obj === 'function') {
+    return new Promise((resolve) => resolve(obj()));
+  }
+
+  return Promise.resolve(obj);
+}
+
+export const directoryFrom$ = (path) => {
+  const parts = path.split('/');
+  parts.pop();
+  return endWithSlash$(parts.join('/'));
 }

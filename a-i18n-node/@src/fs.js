@@ -26,6 +26,7 @@ export const FS = {
   readFile: (path, options) => fs.readFile(path, options).then(buffer => buffer.toString(options.encoding)),
   writeFile: (path, data, options) => fs.writeFile(path, data, options),
 
+  createDirectory: (path) => fs.mkdir(path, { recursive: false }), // recursive = false as vscode file provider don't support recursive
   readDirectory: (path) => new Promise((resolve, reject) => {
     fs.readdir(path, { withFileTypes: true })
       .then(content => resolve(content.map(file => [file.name, file.isFile() ? TypeFile : TypeDirectory])))
@@ -33,5 +34,16 @@ export const FS = {
   }),
 
   existDirectory: (path) => exists(path, TypeDirectory),
-  existFile: (path) => exists(path, TypeFile)
+  existFile: (path) => exists(path, TypeFile),
+
+  watch: (listener, path) => {
+
+    const watcher = fs.watch(path, undefined, (eventType, fileName) => {
+      listener(fileName, eventType);
+    });
+
+    return () => {
+      watcher.close();
+    };
+  }
 };

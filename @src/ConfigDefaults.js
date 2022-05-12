@@ -8,10 +8,17 @@ export const ConfigDefaults = {
   directory: RootDirectory,
   autoExport: false, // needed to improve cli.js default behavior
 
-  // Mocking params:
-  fs: FileSystem,
   errorHandler: (error) => { throw error; },
-  exporter: undefined // { validate(), open(), write(), close() }
+  exportHandler: (result, isError) => { if (isError) throw result; },
+
+  fs: FileSystem,
+  exporter: undefined /* {
+    validate?(state) - throw error if invalid
+    begin(file) -> fileData
+    insert(fileData, translation)
+    end?(file)
+    save() - must return Promise
+  } */
 
 };
 

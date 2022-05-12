@@ -2,11 +2,24 @@ import { Ai18n } from '../index.js';
 import { FS } from './@src/fs.js';
 
 
+export * from '../index.js';
 export class I18n extends Ai18n {
   __initializeFS$ () {
     return FS;
   }
 }
+
+// console.time('fileContent')
+
+// const i18n = new I18n({
+//   directory: './@texts/huge'
+// });
+
+// i18n.load()
+//   .then(() => i18n.deleteKey({ key: 'new-update-key' }))
+//   .then(() => i18n.addKey({ key: 'new-update-key' }))
+//   //.then(() => i18n.export())
+//   .then(() => console.timeEnd('fileContent'));
 
 // console.time('fileContent');
 

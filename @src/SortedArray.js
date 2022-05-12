@@ -2,7 +2,7 @@
 export class SortedArray {
 
   constructor() {
-    this.changed = true;
+    this.changed = true; // needed to update view component
   }
 
   get array() {
@@ -14,9 +14,16 @@ export class SortedArray {
     this.changed = true;
   }
 
-  insert(sortedIndex, element) {
-    this.array.splice(sortedIndex, 0, element);
-    this.changed = true;
+  insert(element, sortedIndex) {
+
+    if (sortedIndex === undefined) {
+      sortedIndex = this.sortedIndexOf(element);
+    }
+
+    if (sortedIndex >= 0) {
+      this.array.splice(sortedIndex, 0, element);
+      this.changed = true;
+    }
   }
 
   remove(value) {
@@ -32,19 +39,20 @@ export class SortedArray {
 
   sortedIndexOf(value) {
 
-    let index = null;
-
     // TODO rewrite with binary search
-    for (let i = 0; i++; i < this.array.length) {
-      const el = this.array[i];
-      if (value === el) {
-        return -1; // element already exist
-      } else if (value < el && index === null) {
-        index = i;
+    for (let i = 0; i < this._array.length; i++) {
+
+      const el = this._array[i];
+
+      if (el < value) {
+        continue;
+      } else {
+        return value === el ? -1 : i;
       }
     }
 
-    return index === null ? this.array.length : index;
+
+    return this.array.length;
   }
 
   indexOf(value) {

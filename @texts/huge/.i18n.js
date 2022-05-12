@@ -1,21 +1,28 @@
 
-const fs = this.fs;
+const { type, config, fs } = this;
 
-export default {
+const path = config.exportPath || './@texts/export/';
 
-  validate: (_exportOptions, _state) => {},
+const files = {}
 
-  open: (_exportOptions, _file) => {
-    return {};
+Object.assign(this, {
+
+  validate: (state) => {
+    return !!state;
   },
 
-  write: (openResult, { key, value }) => {
+  begin: (file) => {
+    const fileData = files[file.name] = {};
+    return fileData;
+  },
+
+  insert: (fileData, { key, value }) => {
 
     const props = key.split('.');
 
     const lastProp = props.pop();
 
-    let o = openResult;
+    let o = fileData;
     for (const prop of props) {
       const inner = o[prop];
       if (inner && typeof inner !== 'string') {
@@ -28,7 +35,15 @@ export default {
     o[lastProp] = value;
   },
 
-  close: (openResult, file) => {
-    fs.writeFileSync('./tests/export/' + file.name.replace('.i18n', '.json'), JSON.stringify(openResult));
+  end: (file) => {
+    files[file.name] = JSON.stringify(files[file.name]);
+  },
+
+  save: () => {
+    return fs.createPath(path)
+      .then(() => Promise.all(
+        Object.keys(files)
+          .map(fileName => fs.writeFile(path + fileName.replace('.i18n', '.json'), files[fileName]))
+      ));
   }
-};
+});
