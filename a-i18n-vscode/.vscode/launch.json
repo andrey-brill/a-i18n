@@ -1,0 +1,33 @@
+// A launch configuration that launches the extension inside a new window
+// ${workspaceFolder}/../a-i18n.code-workspace - not working :(
+// specify several folders in args
+{
+  "version": "0.1.0",
+  "configurations": [
+    {
+      "name": "OS",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "sourceMaps": true,
+      "args": [
+        "${workspaceFolder}/../a-i18n-examples/",
+        "--extensionDevelopmentPath=${workspaceRoot}"
+      ],
+      "preLaunchTask": "npm: build"
+    },
+    {
+      "name": "WEB",
+      "type": "pwa-extensionHost",
+      "debugWebWorkerHost": true,
+      "request": "launch",
+      "sourceMaps": true,
+      "args": [
+        "${workspaceFolder}/../a-i18n-examples/",
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--extensionDevelopmentKind=web"
+      ],
+      "preLaunchTask": "npm: build"
+    }
+  ]
+}

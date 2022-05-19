@@ -5,7 +5,9 @@ import { FileSystem } from './FileSystem.js';
 
 export const ConfigDefaults = {
 
-  directory: RootDirectory,
+  directory: RootDirectory, // relative path
+  rootPath: null, // absolute path to root directory (with .i18n.json config file)
+
   autoExport: false, // needed to improve cli.js default behavior
 
   errorHandler: (error) => { throw error; },

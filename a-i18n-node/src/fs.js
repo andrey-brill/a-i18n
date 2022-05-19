@@ -2,7 +2,7 @@
 import fs from 'fs/promises';
 import { resolve } from 'path';
 
-import { TypeFile, TypeDirectory, RootDirectory } from '../../index.js';
+import { TypeFile, TypeDirectory, RootDirectory } from '../../a-i18n-core-js/index.js';
 
 
 const exists = (path, fileType) => new Promise((resolve, reject) => {
@@ -20,7 +20,7 @@ const exists = (path, fileType) => new Promise((resolve, reject) => {
 
 export const FS = {
 
-  rootPath$: () => resolve(RootDirectory),
+  rootPath$: (rootPath = RootDirectory) => resolve(rootPath),
   delete: (path) => fs.rm(path, { recursive: true, force: true }), // ignore not existing error
 
   readFile: (path, options) => fs.readFile(path, options).then(buffer => buffer.toString(options.encoding)),
@@ -36,7 +36,7 @@ export const FS = {
   existDirectory: (path) => exists(path, TypeDirectory),
   existFile: (path) => exists(path, TypeFile),
 
-  watch: (listener, path) => {
+  watch$: (path, listener) => {
 
     const watcher = fs.watch(path, undefined, (eventType, fileName) => {
       listener(fileName, eventType);

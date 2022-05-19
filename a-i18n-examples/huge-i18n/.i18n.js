@@ -1,7 +1,7 @@
 
 const { type, config, fs } = this;
 
-const path = config.exportPath || './@texts/export/';
+const path = config.exportPath || './texts/export/';
 
 const files = {}
 

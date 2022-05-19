@@ -9,14 +9,15 @@ __Example:__
 ```
 /welcome.text=It's my comment to the Hello World multi-line text
 -welcome.text=Hello,\_World!
-+welcome.approved.quote=If It Works Don't Touch It.
++welcome.quote=If It Works Don't Touch It.
 ```
 
 ### Spread
 
-- __[node](a-i18n-node)__ - core for NodeJs
+- __[node](a-i18n-node)__ - library for NodeJs
 - __[vscode](a-i18n-vscode)__ - plugin for VS Code
 - __[webpack](a-i18n-webpack)__ - plugin for Webpack
+- __[core-js](a-i18n-core-js)__ - common code for js-libraries
 
 ### Main features
 
@@ -51,8 +52,9 @@ __Example:__
 I18n-file name:
 
 ```js
-const FileName = /^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/ // BCP 47
-const BackLogFileName =
+const FileName = /^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?/ // BCP 47
+const I18n = FileName + /\.i18n$/
+const BacklogI18n = FileName + /@\.i18n$/
 // en.i18n
 // en-GB.i18n
 // client_en-US.i18n

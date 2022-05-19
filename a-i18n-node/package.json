@@ -9,10 +9,10 @@
 	},
 	"type": "module",
   "scripts": {
-    "cli": "node @src/cli.js"
+    "cli": "node src/cli.js"
   },
 	"bin": {
-    "a-i18n-node": "@src/cli.js"
+    "a-i18n-node": "src/cli.js"
   },
 	"engines": {
 		"node": ">=12"

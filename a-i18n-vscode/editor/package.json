@@ -1,0 +1,19 @@
+{
+  "name": "a-i18n-vscode-editor",
+  "source": "index.js",
+  "main": "lib/editor.dist.js",
+  "targets": {
+    "main": {
+      "includeNodeModules": {},
+      "context": "browser"
+    }
+  },
+  "scripts": {
+    "prepublish": "parcel build --no-source-maps",
+    "build": "parcel build --no-optimize --no-source-maps --no-content-hash"
+  },
+  "dependencies": {
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  }
+}

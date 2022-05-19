@@ -1,0 +1,77 @@
+{
+  "name": "a-i18n-vscode",
+  "displayName": "A-i18n",
+  "description": "Developer-friendly i18n in your editor",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.50.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    }
+  },
+  "scripts": {
+    "editor-build": "cd ./editor && npm run build && cd ..",
+    "editor-prepublish": "cd ./editor && npm run prepublish && cd ..",
+    "build": "npm run editor-build && webpack --mode development",
+    "vscode:prepublish": "npm run editor-prepublish && webpack --mode production"
+  },
+  "bugs": {
+    "url": "https://github.com/andrey-brill/a-i18n/issues"
+  },
+  "homepage": "https://github.com/andrey-brill/a-i18n",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrey-brill/a-i18n.git"
+  },
+  "browser": "./dist/a-i18n-web.js",
+  "main": "./dist/a-i18n-node.js",
+  "icon": "./extension/svg/logo.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "a-i18n-vscode.openFolder",
+        "title": "Open folder as A-i18n"
+      },
+      {
+        "command": "a-i18n-vscode.openFile",
+        "title": "Open file as A-i18n"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "a-i18n-vscode.openFolder",
+          "group": "2_workspace",
+          "when": "explorerResourceIsFolder && resourcePath =~ /i18n$/i"
+        },
+        {
+          "command": "a-i18n-vscode.openFile",
+          "group": "2_workspace",
+          "when": "!explorerResourceIsFolder && resourceFilename =~ /i18n$/i"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/preset-env": "^7.17.10",
+    "@parcel/optimizer-data-url": "^2.5.0",
+    "@parcel/transformer-inline-string": "^2.5.0",
+    "@parcel/transformer-sass": "^2.5.0",
+    "@types/vscode": "^1.67.0",
+    "babel-loader": "^8.2.5",
+    "parcel": "^2.5.0",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2"
+  }
+}

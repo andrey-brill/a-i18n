@@ -11,6 +11,7 @@ export const I18n = '.i18n';
 export const DefaultI18n = 'en' + I18n;
 export const BacklogI18n = '@.i18n';
 export const I18nJs = '.i18n.js';
+export const I18nConfig = '.i18n.json';
 
 export const FileNameRegExp = /^(.*[^a-zA-Z])?([a-z][a-z])(-[A-Z][A-Z])?\.i18n$/; // must be without @ to ignore changes
 

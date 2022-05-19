@@ -13,13 +13,20 @@ export class Ai18n {
   constructor(config = {}) {
 
     this._config = Object.assign({}, ConfigDefaults, config);
-    this._fs = new this._config.fs(this.__initializeFS$(), this._config.directory);
+    this._fs = new this._config.fs(this.__initializeFS$(), this._config);
 
     this.autoExport = this._config.autoExport;
 
     this._resetState$();
 
-    [
+    this._actions$().forEach(actionFn => {
+      actionFn = actionFn.bind(this);
+      this[actionFn.name] = (options) => actionFn(options).catch(e => this._config.errorHandler(e))
+    });
+  }
+
+  _actions$() {
+    return [
       this.addFile,
       this.addKey,
       this.connect,
@@ -35,10 +42,7 @@ export class Ai18n {
       this.updateComment,
       this.updateTranslation,
       this.updateValue
-    ].forEach(actionFn => {
-      actionFn = actionFn.bind(this);
-      this[actionFn.name] = (options) => actionFn(options).catch(e => this._config.errorHandler(e))
-    });
+    ]
   }
 
   __initializeFS$() {
@@ -72,7 +76,8 @@ export class Ai18n {
       after: {}
     };
 
-    this.state.updated = {}; // needed to make possible save without reloading
+    // needed to make possible save without reloading
+    this.state.updated = Object.assign({}, this.state.origins);
   }
 
   _cloneState$() {
@@ -157,7 +162,8 @@ export class Ai18n {
         delete updated[fullKey];
         keysState[parsedLine.key] = false;
       } else {
-        const translation = Object.assign({}, updated[fullKey], parsedLine); // order important, updated can't be changed directly
+         // order important, updated values should be immutable (as they can be link to origins)
+        const translation = Object.assign({}, updated[fullKey], parsedLine);
         updated[fullKey] = translation;
         updates.after[fullKey] = translation;
         keysState[parsedLine.key] = true;
@@ -173,6 +179,11 @@ export class Ai18n {
       }
     })
 
+  }
+
+  _resetAllUpdates() {
+    this._resetUpdates$();
+    return Promise.all(this.state.files.map(file => this._fs.delete(toBacklog$(file.path))));
   }
 
   _updateKeys$() {
@@ -209,7 +220,7 @@ export class Ai18n {
         this.state.updates.length = optimizedKeys.size;
 
         if (updateKeys.size > 0 && optimizedKeys.size === 0) {
-          return this.save(); // making sure if all updates "reverted" to remove update-lines from files
+          return this._resetAllUpdates(); // if all updates reverted then removing backlog files
         } else {
           return true;
         }
@@ -218,15 +229,8 @@ export class Ai18n {
   }
 
   _findFiles(filter$, returnFirst = false) {
-    return this._fs.existDirectory()
-      .then(isExists => {
-
-        if (!isExists) {
-          throw new InvalidDirectoryError(this._config.directory);
-        }
-
-        return this._fs.readDirectory();
-      })
+    return this._fs.validateDirectory()
+      .then(() => this._fs.readDirectory())
       .then((content = []) => {
 
         const r = content
@@ -254,12 +258,8 @@ export class Ai18n {
   }
 
   connect(options = {}) {
-    return this._fs.existDirectory()
-      .then(isExists => {
-
-        if (!isExists) {
-          throw new InvalidDirectoryError(this._config.directory);
-        }
+    return this._fs.validateDirectory()
+      .then(() => {
 
         this._onChange$ = options.onChange;
 
@@ -274,7 +274,7 @@ export class Ai18n {
         const ignoreChangesTimeoutMs = 1000;
         const debounceLoad = debounceAction$(this, this.load, 300); // if several updates applied at the same time
 
-        const unsubscribe = this._fs.watch(fileName => {
+        const unsubscribe = this._fs.watch$(fileName => {
 
           if (isI18nJsFile$(fileName)) {
             return this._autoExport();
@@ -331,7 +331,6 @@ export class Ai18n {
 
               const translation = Object.assign(this.state.origins[fullKey] || {}, parsedLine);
               this.state.origins[fullKey] = translation
-              this.state.updated[fullKey] = translation;
 
               const targetSet = parsedLine.type === CommentLine ? commentKeys : valueKeys;
 
@@ -345,8 +344,11 @@ export class Ai18n {
 
           }
 
+
           // must be set before updates
           this.state.keys.array = Array.from(keys.values());
+
+          this._resetUpdates$();
 
           // updates must be applied
           const backlogOffset = this.state.files.length;
@@ -378,10 +380,7 @@ export class Ai18n {
 
       this._lastTimeUpdated = getTime$();
 
-      const files = this.state.files.map(file => ({
-        name: file.name,
-        path: file.path,
-        backlog: toBacklog$(file.path),
+      const files = this.state.files.map(file => Object.assign({}, file, {
         lines: [],
         t: undefined
       }));
@@ -416,23 +415,26 @@ export class Ai18n {
 
       return files;
     })
-      .then(files => Promise.all(files.map(file => {
+      .then(files => {
 
-        file.lines.push(''); // adding empty line in the end
+        this._lastTimeUpdated = getTime$();
 
-        return this._fs.writeFile(file.path, file.lines.join('\n'))
-          .then(() => {
-            this._lastTimeUpdated = getTime$();
-            return this._fs.delete(file.backlog)
-          });
+        return Promise.all(files.map(file => {
 
-      })))
+          file.lines.push(''); // adding empty line in the end
+
+          return this._fs.writeFile(file.path, file.lines.join('\n'))
+            .then(() => this._lastTimeUpdated = getTime$());
+
+        }))
+      })
       .then(() => {
         this._lastTimeUpdated = getTime$();
         this.state.origins = this.state.updated;
-        this._resetUpdates$();
-        return this._autoExport();
-      });
+        return this._resetAllUpdates()
+
+      })
+      .then(() => this._autoExport());
   }
 
   export(options = {}) {
@@ -740,6 +742,10 @@ export class Ai18n {
       const updateKeys = this._updateKeys$();
       if (updateKeys.size === 0) {
         return;
+      }
+
+      if (!fileName && !key) {
+        return this._resetAllUpdates();
       }
 
       const updates = [];

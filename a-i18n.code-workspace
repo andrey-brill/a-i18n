@@ -1,0 +1,32 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "a-i18n"
+    },
+    {
+      "path": "a-i18n-examples"
+    },
+    {
+      "path": "a-i18n-core-js"
+    },
+    {
+      "path": "a-i18n-node"
+    },
+    {
+      "path": "a-i18n-vscode"
+    },
+    {
+      "path": "a-i18n-webpack"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "a-i18n-core-js": true,
+      "a-i18n-node": true,
+      "a-i18n-vscode": true,
+      "a-i18n-webpack": true,
+      "a-i18n-examples": true
+    }
+  }
+}
