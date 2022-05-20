@@ -1,0 +1,33 @@
+
+.g-panels {
+  flex-direction: row;
+}
+
+.g-panels-left {
+  flex-grow: 3;
+  border-right: 1px solid var(--vscode-sideBar-background);
+}
+
+.g-panels-right {
+  flex-grow: 1;
+  max-width: 350px;
+  flex-direction: column;
+}
+
+.g-panel {
+  padding: 15px 20px;
+}
+
+.g-panels, .g-panels-left, .g-panels-right {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+}
+
+.g-panels-right-top {
+  border-bottom: 1px solid var(--vscode-sideBar-background);
+}
+
+.g-panels-right-top, .g-panels-right-bottom {
+  flex-grow: 1;
+}

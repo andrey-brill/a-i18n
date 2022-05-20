@@ -10,7 +10,7 @@
   },
   "scripts": {
     "prepublish": "parcel build --no-source-maps",
-    "build": "parcel build --no-optimize --no-source-maps --no-content-hash"
+    "watch": "parcel watch --no-source-maps"
   },
   "dependencies": {
     "react": "^18.1.0",

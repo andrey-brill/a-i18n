@@ -7,9 +7,12 @@ import { directoryFrom$, endWithSlash$, toPromise } from './Utils.js';
 
 
 function validateRelativePath$(path) {
+
   if (!path || typeof path !== 'string' || !path.startsWith(RootDirectory)) {
     throw new InvalidPathError(path);
   }
+
+  return path; // important
 }
 
 export class FileSystem {
@@ -32,7 +35,7 @@ export class FileSystem {
   }
 
   validateDirectory (path = this._directory) {
-    return this._fs.existDirectory(path)
+    return this.existDirectory(path)
       .then(isExists => {
 
         if (!isExists) {

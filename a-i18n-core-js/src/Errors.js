@@ -97,7 +97,7 @@ export class NoI18nJsFileError extends I18nError {
 
 export class InvalidDirectoryError extends I18nError {
   constructor(directory) {
-    super(ErrorCodes.InvalidDirectory, `Directory doesn't exist: ${directory}`);
+    super(ErrorCodes.InvalidDirectory, `I18n-directory doesn't exist: ${directory}. Please, check configuration.`);
   }
 }
 

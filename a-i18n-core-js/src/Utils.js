@@ -2,7 +2,7 @@
 import { ApprovedLine, BacklogI18n, CommentLine, DeleteKeyLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine, RootDirectory } from './Constants.js';
 
 
-export const debounceAction$ = (obj, callback, time) => {
+export const debounceAction$ = (callback, time) => {
 
   let waiting = false;
 
@@ -14,7 +14,7 @@ export const debounceAction$ = (obj, callback, time) => {
 
     waiting = true;
     setTimeout(function () {
-      callback.apply(obj, options);
+      callback(options);
       waiting = false;
     }, time);
 
@@ -48,7 +48,10 @@ export const buildFK$ = (fileName, key) => fileName + FullKeySeparator + key;
 export const splitFK$ = (fullKey) => fullKey.split(FullKeySeparator);
 
 
-export const endWithSlash$ = (path = '') => {
+export const endWithSlash$ = (path) => {
+  if (!path || path.length === 0) {
+    throw new Error('Empty path');
+  }
   return path.endsWith('/') ? path : (path.endsWith('\\') ? path.substring(0, path.length - 1) + '/' : path + '/');
 }
 

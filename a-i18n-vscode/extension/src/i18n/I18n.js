@@ -1,7 +1,6 @@
 
 
-import { Ai18n, I18nConfig, RootDirectory, TypeFile } from '../../../../a-i18n-core-js/index.js';
-import { endWithSlash$ } from '../../../../a-i18n-core-js/src/Utils.js';
+import { Ai18n, I18nConfig, RootDirectory, TypeFile, directoryFrom$, endWithSlash$ } from '../../../../a-i18n-core-js/index.js';
 import { FS } from './FS.js';
 
 
@@ -46,7 +45,7 @@ export class I18n extends Ai18n {
           autoExport: this.autoExport
         });
 
-        return this._fs.writeFile(ConfigPath, JSON.stringify(current, undefined, 2));
+        return this._fs.writeFile(ConfigPath, JSON.stringify(i18nConfig, undefined, 2));
       })
   }
 
@@ -66,7 +65,7 @@ export function initFromConfigs$ (configFiles = {}, configDefaults = {}) {
       const savedConfig = configFile[directory];
       const config = Object.assign({}, configDefaults, savedConfig, { rootPath, directory  })
 
-      const fullPath = fullPath(rootPath, directory);
+      const fullPath = fullPath$(rootPath, directory);
       if (!result[fullPath]) {
         result[fullPath] = new I18n(config);
       }
@@ -80,12 +79,10 @@ export function initFromConfigs$ (configFiles = {}, configDefaults = {}) {
 
 export function initFromResourcePath$ (rootPath, resourcePath, resourceType, configDefaults = {}) {
 
-
   let directoryPath = resourcePath;
   if (resourceType === TypeFile) {
     directoryPath = directoryFrom$(resourcePath);
   }
-
 
   if (directoryPath.indexOf(rootPath) !== 0) {
     throw new Error('WTF?');

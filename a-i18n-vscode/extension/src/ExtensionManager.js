@@ -1,7 +1,7 @@
 import vscode, { Uri } from 'vscode';
 
 import { I18nConfig, initFromConfigs$, initFromResourcePath$, TypeDirectory, TypeFile } from './i18n/I18n.js';
-import { errorHandler$, toPath$, toUniqueShortPath$ } from './Utils.js';
+import { errorHandler$, toPath$, toString$, toUniqueShortPath$ } from './Utils.js';
 import { Disposable } from './Disposable.js';
 import { I18nManager } from './I18nManager.js';
 
@@ -83,7 +83,7 @@ export class ExtensionManager extends Disposable {
         }
 
         const i18ns = initFromConfigs$(configFiles, this.configDefaults);
-        const managers = i18ns.map(i18n => createManager(i18n));
+        const managers = i18ns.map(i18n => this.createManager(i18n));
 
         this.updateTitles$();
 
@@ -99,13 +99,13 @@ export class ExtensionManager extends Disposable {
 
   openEditor(uri, resourceType) {
 
-    console.log('openEditor', uri, resourceType);
-
     const rootFolder = vscode.workspace.getWorkspaceFolder(uri);
+    if (!rootFolder) {
+      throw new Error(`Can't resolve workspace folder for uri: ` + toString$(uri));
+    }
 
-    // TODO debug
     const rootPath = toPath$(rootFolder);
-    const resourcePath = toPath$(uri);
+    const resourcePath = resourceType === TypeFile ? toString$(uri) : toPath$(uri);
 
     const i18n = initFromResourcePath$(rootPath, resourcePath, resourceType, this.configDefaults);
 

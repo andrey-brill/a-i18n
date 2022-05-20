@@ -1,7 +1,7 @@
 
 import vscode from 'vscode';
 
-import { endWithSlash$ } from '../../../a-i18n-core-js/src/Utils.js';
+import { endWithSlash$ } from './i18n/I18n.js';
 
 
 export function toString$(uri) {

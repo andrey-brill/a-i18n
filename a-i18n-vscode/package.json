@@ -18,9 +18,9 @@
     }
   },
   "scripts": {
-    "editor-build": "cd ./editor && npm run build && cd ..",
+    "editor-watch": "cd ./editor && npm run watch",
     "editor-prepublish": "cd ./editor && npm run prepublish && cd ..",
-    "build": "npm run editor-build && webpack --mode development",
+    "build": "webpack --mode development",
     "vscode:prepublish": "npm run editor-prepublish && webpack --mode production"
   },
   "bugs": {

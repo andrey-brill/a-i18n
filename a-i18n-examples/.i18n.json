@@ -1,3 +1,5 @@
 {
-  "autoExport": false
+  "./hello-world-i18n/": {
+    "autoExport": false
+  }
 }

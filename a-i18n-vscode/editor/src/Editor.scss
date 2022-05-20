@@ -1,7 +1,9 @@
 
-body {
-  h1 {
-    color: hotpink;
-    font-family: cursive;
-  }
+@import './Panels.scss';
+
+html, body {
+  height: 100vh; // 100vh not working !!! use 100%!!! and inherit down to panels
+  min-height: 100vh;
+  max-height: 100vh;
+  padding: 0;
 }

@@ -1,6 +1,6 @@
 
 
-const baseConfig = {
+const baseConfig = (targets) => ({
   entry: './extension/index.js',
   externals: {
     'vscode': 'vscode'
@@ -21,17 +21,19 @@ const baseConfig = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [['@babel/preset-env', { targets: 'defaults' }]]
+            presets: [['@babel/preset-env', { targets }]]
           }
         }
       }
     ]
   }
-};
+});
 
 
 const nodeConfig = {
-  ...baseConfig,
+  ...baseConfig({
+    node: 12
+  }),
   target: 'node',
   output: {
     libraryTarget: 'commonjs2',
@@ -42,7 +44,9 @@ const nodeConfig = {
 
 
 const webConfig = {
-  ...baseConfig,
+  ...baseConfig({
+    browsers: "> 5%, not ie 11, not dead, not op_mini all"
+  }),
   target: 'web',
   output: {
     libraryTarget: 'commonjs2',

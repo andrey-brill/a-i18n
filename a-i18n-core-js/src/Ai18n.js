@@ -20,8 +20,20 @@ export class Ai18n {
     this._resetState$();
 
     this._actions$().forEach(actionFn => {
+
+      const actionName = actionFn.name;
+      if (actionName[0] === '_') {
+        throw new Error('Invalid action: ' + actionName);
+      }
+
       actionFn = actionFn.bind(this);
-      this[actionFn.name] = (options) => actionFn(options).catch(e => this._config.errorHandler(e))
+      this[actionName] = (options) => {
+        console.log('call', actionName);
+        return actionFn(options).catch(e => {
+          console.log('catch', e);
+          this._config.errorHandler(e);
+        });
+      }
     });
   }
 
@@ -263,18 +275,12 @@ export class Ai18n {
 
         this._onChange$ = options.onChange;
 
-        if (!this.state.loaded) {
-          return this.load();
-        } else {
-          this._triggerChange$();
-        }
-      })
-      .then(() => {
-
         const ignoreChangesTimeoutMs = 1000;
-        const debounceLoad = debounceAction$(this, this.load, 300); // if several updates applied at the same time
+        const debounceLoad = debounceAction$(this.load, 300); // if several updates applied at the same time
 
         const unsubscribe = this._fs.watch$(fileName => {
+
+          console.log('watch change', fileName);
 
           if (isI18nJsFile$(fileName)) {
             return this._autoExport();
@@ -285,13 +291,12 @@ export class Ai18n {
               debounceLoad();
             }
           }
-        })
+        });
 
         return () => {
           delete this._onChange$;
           unsubscribe();
         }
-
       });
   }
 
