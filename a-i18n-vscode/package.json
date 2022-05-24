@@ -43,6 +43,10 @@
       {
         "command": "a-i18n-vscode.openFile",
         "title": "Open file as A-i18n"
+      },
+      {
+        "command": "a-i18n-vscode.open",
+        "title": "Open A-i18n"
       }
     ],
     "menus": {

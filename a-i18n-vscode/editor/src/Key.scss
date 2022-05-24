@@ -1,0 +1,50 @@
+
+.g-key {
+
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+
+  .g-key-value {
+    flex-basis: 100%;
+  }
+
+  .g-key-locale {
+
+    padding-left: var(--ph);
+    padding-right: var(--ph);
+    height: var(--input-h);
+    display: flex;
+    align-items: center;
+
+    label {
+      text-transform: uppercase;
+      display: flex;
+      font-weight: var(--bold);
+      color: var(--color-locale);
+      min-width: var(--locale-w);
+      max-width: var(--locale-w);
+      justify-content: space-between;
+      font-size: 80%;
+    }
+  }
+
+  .g-key-value {
+
+    height: calc(1.4 * var(--input-h));
+    display: flex;
+    align-items: center;
+
+    > span {
+      font-size: 120%;
+      font-weight: var(--bold);
+      line-height: 1px;
+      padding-right: var(--ph-md);
+      padding-left: var(--ph-md);
+    }
+
+    > div {
+      display: inline-flex;
+    }
+  }
+}

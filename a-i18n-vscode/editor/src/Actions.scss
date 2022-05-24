@@ -1,0 +1,10 @@
+
+.g-action {
+
+  color: var(--vscode-editor-foreground) !important;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

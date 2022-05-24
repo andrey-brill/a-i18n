@@ -40,6 +40,10 @@ export function errorHandler$(error) {
 
 export function toUniqueShortPath$(paths = []) {
 
+  if (paths.length === 0) {
+    return {};
+  }
+
   const all = new Set(paths);
   if (paths.length !== all.size) {
     throw new Error('Not unique paths');

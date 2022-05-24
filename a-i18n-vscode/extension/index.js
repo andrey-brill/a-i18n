@@ -9,5 +9,5 @@ export function deactivate() {
 }
 
 export function activate() {
-  extension.connect$();
+  extension.activate$();
 }

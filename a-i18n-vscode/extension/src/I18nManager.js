@@ -40,7 +40,6 @@ export class I18nManager extends Disposable {
 
     panel.iconPath = Uri.parse(logo);
 
-
     const script = editorJs.replace('"<script></script>"', '"<scr" + "ipt></scr" + "ipt>"'); // in react
 
     const templateParts = editorHtml.split('{}');

@@ -1,0 +1,131 @@
+
+
+$border-width: 1px;
+$border: $border-width solid var(--color-border);
+$topper-offset: 10px;
+
+.g-translations {
+
+  margin-top: -1 * $topper-offset;
+  padding-top: $topper-offset;
+  overflow-y: overlay;
+  overflow-x: hidden;
+
+  .g-translation {
+
+    border-top: $border;
+    border-bottom: $border;
+    background: var(--color-background);
+
+    padding-bottom: 2px + $topper-offset;
+
+    &:not(:first-child) {
+      margin-top: -1 * $border-width;
+    }
+
+
+    .g-translation-header {
+
+      display: flex;
+      flex-direction: row;
+
+      > .grow {
+        flex-grow: 1;
+      }
+
+      .actions {
+
+        font-size: 88%;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        font-weight: 300;
+        padding-top: 1px;
+
+        .g-icon {
+          height: 17px;
+        }
+      }
+
+      .locale {
+
+        display: flex;
+        justify-content: space-between;
+        color: var(--color-locale);
+        min-width: var(--locale-w);
+        max-width: var(--locale-w);
+
+        .disabled {
+          color: var(--color-border);
+        }
+      }
+
+      .g-topper {
+
+        margin-top: -1 * $topper-offset;
+        height: $topper-offset;
+
+        .g-topper-children {
+          margin-top: 3px - $topper-offset;
+          padding-left: var(--ph);
+          padding-right: var(--ph);
+        }
+
+        .g-topper-black {
+          height: $topper-offset - 1px;
+          background: var(--color-background);
+          border-top: $border;
+          border-radius: 2 * $border-width;
+        }
+
+        &:first-child .g-topper-black {
+          border-right: $border;
+        }
+
+        &:last-child .g-topper-black {
+          border-left: $border;
+        }
+      }
+
+    }
+
+
+    .content {
+
+      padding-left: calc(var(--ph) - 3px);
+      padding-right: var(--ph);
+      margin-top: 4px + $topper-offset;
+
+      .line {
+        display: flex;
+
+        > span:first-child {
+          margin-right: 8px;
+        }
+      }
+
+      .diff {
+        color: var(--color-locale);
+        margin-top: -3px;
+        font-weight: 300;
+
+        .added {
+          color: var(--color-success);
+        }
+        .removed  {
+          color: var(--color-danger);
+          text-decoration: line-through;
+        }
+      }
+
+      .comment {
+        color: var(--color-locale);
+      }
+    }
+  }
+
+}
+
+.g-translations:hover .g-translation:not(:hover) .g-topper:last-child,
+.g-translations:not(:hover) .g-translation:not(:first-child) .g-topper:last-child {
+  display: none;
+}

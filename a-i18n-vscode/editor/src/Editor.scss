@@ -1,9 +1,10 @@
 
-@import './Panels.scss';
 
-html, body {
-  height: 100vh; // 100vh not working !!! use 100%!!! and inherit down to panels
-  min-height: 100vh;
-  max-height: 100vh;
+html, body, #root {
+  overflow: hidden;
+  height: var(--h);
+  min-height: var(--h);
+  max-height: var(--h);
+
   padding: 0;
 }

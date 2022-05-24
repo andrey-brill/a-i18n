@@ -4,12 +4,15 @@ import { I18nConfig, initFromConfigs$, initFromResourcePath$, TypeDirectory, Typ
 import { errorHandler$, toPath$, toString$, toUniqueShortPath$ } from './Utils.js';
 import { Disposable } from './Disposable.js';
 import { I18nManager } from './I18nManager.js';
+import { StatusBarManager } from './StatusBarManager.js';
 
 
 export class ExtensionManager extends Disposable {
 
   constructor() {
     super();
+
+    this.statusBarManager = new StatusBarManager();
 
     this.configDefaults = {
       errorHandler: errorHandler$,
@@ -25,12 +28,16 @@ export class ExtensionManager extends Disposable {
     }
   }
 
-  connect$() {
+  activate$() {
 
     this.dispose$();
 
+    this.dis$(this.statusBarManager);
+
+    this.statusBarManager.init();
+
     this.dis$(vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      this.connect$();
+      this.activate$();
     }));
 
     const toCommand$ = (commandFn) => (a, b, c) => {
@@ -46,11 +53,15 @@ export class ExtensionManager extends Disposable {
     };
 
     this.dis$(vscode.commands.registerCommand("a-i18n-vscode.openFolder", toCommand$(uri => {
-      this.openEditor(uri, TypeDirectory);
+      this.openEditorByUri(uri, TypeDirectory);
     })));
 
     this.dis$(vscode.commands.registerCommand("a-i18n-vscode.openFile", toCommand$(uri => {
-      this.openEditor(uri, TypeFile);
+      this.openEditorByUri(uri, TypeFile);
+    })));
+
+    this.dis$(vscode.commands.registerCommand("a-i18n-vscode.open", toCommand$(() => {
+      this.openEditor();
     })));
 
     const hasFolders = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
@@ -83,9 +94,7 @@ export class ExtensionManager extends Disposable {
         }
 
         const i18ns = initFromConfigs$(configFiles, this.configDefaults);
-        const managers = i18ns.map(i18n => this.createManager(i18n));
-
-        this.updateTitles$();
+        const managers = i18ns.map(i18n => this.createManager$(i18n));
 
         this.nonActiveReason = null;
 
@@ -97,7 +106,7 @@ export class ExtensionManager extends Disposable {
       })
   }
 
-  openEditor(uri, resourceType) {
+  openEditorByUri(uri, resourceType) {
 
     const rootFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!rootFolder) {
@@ -109,17 +118,38 @@ export class ExtensionManager extends Disposable {
 
     const i18n = initFromResourcePath$(rootPath, resourcePath, resourceType, this.configDefaults);
 
-    const manager = this.managers[i18n.fullPath$()];
-    if (manager) {
-      return manager.showPanel$()
+    let manager = this.managers[i18n.fullPath$()];
+
+    if (!manager) {
+
+      manager = this.createManager$(i18n);
+
+      i18n.saveConfig();
+      newManager.connect();
     }
 
-    const newManager = this.createManager(i18n);
-    newManager.showPanel$()
+    manager.showPanel$();
     this.updateTitles$();
+  }
 
-    i18n.saveConfig();
-    newManager.connect()
+  openEditor() {
+
+    const paths = Object.keys(this.managers);
+
+    if (paths.length === 1) {
+      this.openEditorByUri(Uri.parse(paths[0]), TypeDirectory);
+    } else if (paths.length > 1) {
+
+      const shorts = toUniqueShortPath$(paths);
+      const items = paths.map(p => ({ label: shorts[p], detail: p }));
+
+      vscode.window.showQuickPick(items, { canPickMany: false })
+        .then(selected => {
+          if (selected) {
+            this.openEditorByUri(Uri.parse(selected.detail), TypeDirectory);
+          }
+        });
+   }
   }
 
   dispose$() {
@@ -128,7 +158,7 @@ export class ExtensionManager extends Disposable {
     this.nonActiveReason = 'A-i18n extension not initialized yet';
   }
 
-  createManager(i18n) {
+  createManager$(i18n) {
 
     const manager = new I18nManager(i18n)
     this.dis$(manager);
@@ -138,13 +168,21 @@ export class ExtensionManager extends Disposable {
     }
 
     this.managers[manager.path] = manager;
+    this.onManagersChanged$();
 
     return manager;
   }
 
+  onManagersChanged$() {
+    this.statusBarManager.update(Object.keys(this.managers));
+  }
+
   updateTitles$() {
-    const shortPaths = toUniqueShortPath$(Object.keys(this.managers))
-    for (const fullPath of Object.keys(shortPaths)) {
+
+    const paths = Object.keys(this.managers);
+    const shortPaths = toUniqueShortPath$(paths)
+
+    for (const fullPath of paths) {
       this.managers[fullPath].setTitle$(shortPaths[fullPath]);
     }
   }

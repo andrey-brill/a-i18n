@@ -1,0 +1,41 @@
+
+@import './Panels.scss';
+@import './Editor.scss';
+@import './Icons.scss';
+@import './Dropdown.scss';
+@import './Space.scss';
+@import './Key.scss';
+@import './Actions.scss';
+@import './Translations.scss';
+
+
+:root {
+
+  --h: 100%;
+
+  --ph: 20px;
+  --pv: 15px;
+
+  --ph-md: 16px;
+  --ph-sm: 12px;
+  --pv-sm: 8px;
+  --pv-xs: 4px;
+
+  --input-h: 32px;
+  --locale-w: 40px;
+
+  // --color-border: var(--vscode-sideBar-background);
+  --color: var(--vscode-foreground);
+  --color-disabled: var(--vscode-disabledForeground);
+  --color-locale: var(--vscode-descriptionForeground);
+  --color-border: var(--vscode-input-background);
+
+  --color-success: var(--vscode-extensionIcon-preReleaseForeground);
+  --color-danger: var(--vscode-editorError-foreground);
+  --color-background: var(--vscode-editor-background);
+
+  --panel-min-width: 250px;
+  --panel-max-width: 450px;
+
+  --bold: 600;
+}
