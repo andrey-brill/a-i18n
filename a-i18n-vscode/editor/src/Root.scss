@@ -7,7 +7,7 @@
 @import './Key.scss';
 @import './Actions.scss';
 @import './Translations.scss';
-
+@import './utils/ResizablePlanes.scss';
 
 :root {
 
@@ -28,7 +28,9 @@
   --color: var(--vscode-foreground);
   --color-disabled: var(--vscode-disabledForeground);
   --color-locale: var(--vscode-descriptionForeground);
+
   --color-border: var(--vscode-input-background);
+  --color-border-focus: var(--vscode-focusBorder);
 
   --color-success: var(--vscode-extensionIcon-preReleaseForeground);
   --color-danger: var(--vscode-editorError-foreground);

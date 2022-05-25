@@ -1,12 +1,12 @@
 
-import { ApprovedLine, BacklogI18n, CommentLine, DeleteKeyLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine, RootDirectory } from './Constants.js';
+import { ApprovedLine, BacklogI18n, CommentLine, DeleteKeyLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine } from './Constants.js';
 
 
-export const debounceAction$ = (callback, time) => {
+export const simpleDebounce$ = (callback, time) => {
 
   let waiting = false;
 
-  return function (options) {
+  return function () {
 
     if (waiting) {
       return;
@@ -14,7 +14,7 @@ export const debounceAction$ = (callback, time) => {
 
     waiting = true;
     setTimeout(function () {
-      callback(options);
+      callback();
       waiting = false;
     }, time);
 

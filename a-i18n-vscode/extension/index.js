@@ -8,6 +8,6 @@ export function deactivate() {
   extension.dispose$();
 }
 
-export function activate() {
-  extension.activate$();
+export function activate(context) {
+  extension.activate$(context);
 }

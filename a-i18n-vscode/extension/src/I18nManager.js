@@ -7,6 +7,7 @@ import { buildFK$ } from './i18n/I18n.js';
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
 import logo from '../svg/logo.svg';
+import { MessageTypes } from '../../core/constants.js';
 
 
 
@@ -19,11 +20,24 @@ const KeysLimit = 50;
 
 export class I18nManager extends Disposable {
 
-  constructor(i18n) {
+  constructor(context, i18n) {
     super();
+
+    this.context = context;
     this.i18n = i18n;
     this.path = i18n.fullPath$();
     this.dispose();
+  }
+
+  _buildInit$() {
+
+    const message = { type: MessageTypes.Init, workspaceState: {} };
+
+    for (const key of this.context.workspaceState.keys()) {
+      message.workspaceState[key] = this.context.workspaceState.get(key);
+    }
+
+    return message;
   }
 
   showPanel$() {
@@ -56,8 +70,17 @@ export class I18nManager extends Disposable {
     this.dis$(panel.webview.onDidReceiveMessage((message) => {
       console.log('panel.webview', message);
 
-      if (message.type === 'READY') {
+      if (message.type === MessageTypes.Ready) {
+        this.postMessage$(this._buildInit$())
         this.updatePanel$();
+      }
+
+      if (message.type === MessageTypes.UpdateWorkspaceState) {
+        for (const key of Object.keys(message)) {
+          if (key !== 'type') {
+            this.context.workspaceState.update(key, message[key]);
+          }
+        }
       }
     }));
 
@@ -75,7 +98,7 @@ export class I18nManager extends Disposable {
 
       const { keys, files, updated } = this.state;
 
-      const prepared = Object.assign({ type: 'UPDATE' }, this.ui);
+      const prepared = Object.assign({ type: MessageTypes.Update }, this.ui);
       prepared.loaded = this.state.loaded;
       prepared.error = this.state.error;
       prepared.updates = this.state.updates;
@@ -135,8 +158,17 @@ export class I18nManager extends Disposable {
 
       this.previousPrepared = prepared;
 
+      this.postMessage$(prepared);
+    }
+  }
+
+  postMessage$(message) {
+    if (this.panel) {
       // postMessage works in single tread, thus it wait while React is rendering
-      this.panel.webview.postMessage(prepared);
+      console.log('postMessage', message.type, message);
+      this.panel.webview.postMessage(message);
+    } else {
+      console.error("Can't post message", message);
     }
   }
 

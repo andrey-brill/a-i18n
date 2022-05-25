@@ -1,6 +1,6 @@
 
 import { ErrorCodes, InvalidLineError, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, InvalidDirectoryError, NoI18nFilesError, InvalidKeyError, ExportError, NoI18nJsFileError } from './Errors.js';
-import { debounceAction$, safeValue$, detectLocale$, isI18nFile$, isI18nJsFile$, getTime$, unsafeValue$, commentLine$, valueLine$, deleteLine$, splitFK$, buildFK$, toBacklog$, toPromise } from './Utils.js';
+import { simpleDebounce$, safeValue$, detectLocale$, isI18nFile$, isI18nJsFile$, getTime$, unsafeValue$, commentLine$, valueLine$, deleteLine$, splitFK$, buildFK$, toBacklog$, toPromise } from './Utils.js';
 import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, AutoExport, ManualExport, TypeFile, DefaultI18n } from './Constants.js';
 
 import { SortedArray } from './SortedArray.js';
@@ -276,7 +276,7 @@ export class Ai18n {
         this._onChange$ = options.onChange;
 
         const ignoreChangesTimeoutMs = 1000;
-        const debounceLoad = debounceAction$(this.load, 300); // if several updates applied at the same time
+        const debounceLoad = simpleDebounce$(this.load, 300); // if several updates applied at the same time
 
         const unsubscribe = this._fs.watch$(fileName => {
 

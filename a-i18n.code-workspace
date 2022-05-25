@@ -14,10 +14,13 @@
       "path": "a-i18n-node"
     },
     {
+      "path": "a-i18n-webpack"
+    },
+    {
       "path": "a-i18n-vscode"
     },
     {
-      "path": "a-i18n-webpack"
+      "path": "a-i18n-intellij"
     }
   ],
   "settings": {
@@ -26,7 +29,8 @@
       "a-i18n-node": true,
       "a-i18n-vscode": true,
       "a-i18n-webpack": true,
-      "a-i18n-examples": true
+      "a-i18n-examples": true,
+      "a-i18n-intellij": true
     }
   }
 }

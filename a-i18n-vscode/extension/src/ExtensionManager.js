@@ -5,7 +5,10 @@ import { errorHandler$, toPath$, toString$, toUniqueShortPath$ } from './Utils.j
 import { Disposable } from './Disposable.js';
 import { I18nManager } from './I18nManager.js';
 import { StatusBarManager } from './StatusBarManager.js';
+import { Extension } from '../../core/constants.js';
 
+
+const NotInitializedText = 'A-i18n extension not initialized yet';
 
 export class ExtensionManager extends Disposable {
 
@@ -28,13 +31,13 @@ export class ExtensionManager extends Disposable {
     }
   }
 
-  activate$() {
+  activate$(context) {
 
     this.dispose$();
 
-    this.dis$(this.statusBarManager);
+    this.context = context;
 
-    this.statusBarManager.init();
+    this.dis$(this.statusBarManager.init());
 
     this.dis$(vscode.workspace.onDidChangeWorkspaceFolders(() => {
       this.activate$();
@@ -42,7 +45,11 @@ export class ExtensionManager extends Disposable {
 
     const toCommand$ = (commandFn) => (a, b, c) => {
       if (this.nonActiveReason) {
-        vscode.window.showErrorMessage(this.nonActiveReason);
+        if (this.nonActiveReason === NotInitializedText) {
+          vscode.window.showInformationMessage(this.nonActiveReason);
+        } else {
+          vscode.window.showErrorMessage(this.nonActiveReason);
+        }
       } else {
         try {
           commandFn.call(this, a, b, c);
@@ -52,15 +59,15 @@ export class ExtensionManager extends Disposable {
       }
     };
 
-    this.dis$(vscode.commands.registerCommand("a-i18n-vscode.openFolder", toCommand$(uri => {
+    this.dis$(vscode.commands.registerCommand(Extension + ".openFolder", toCommand$(uri => {
       this.openEditorByUri(uri, TypeDirectory);
     })));
 
-    this.dis$(vscode.commands.registerCommand("a-i18n-vscode.openFile", toCommand$(uri => {
+    this.dis$(vscode.commands.registerCommand(Extension + ".openFile", toCommand$(uri => {
       this.openEditorByUri(uri, TypeFile);
     })));
 
-    this.dis$(vscode.commands.registerCommand("a-i18n-vscode.open", toCommand$(() => {
+    this.dis$(vscode.commands.registerCommand(Extension + ".open", toCommand$(() => {
       this.openEditor();
     })));
 
@@ -155,12 +162,12 @@ export class ExtensionManager extends Disposable {
   dispose$() {
     this.dispose();
     this.managers = {};
-    this.nonActiveReason = 'A-i18n extension not initialized yet';
+    this.nonActiveReason = NotInitializedText;
   }
 
   createManager$(i18n) {
 
-    const manager = new I18nManager(i18n)
+    const manager = new I18nManager(this.context, i18n)
     this.dis$(manager);
 
     if (this.managers[manager.path]) {

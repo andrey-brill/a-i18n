@@ -1,64 +1,47 @@
 
-import React from 'react';
+import React, { useContext } from 'react';
+import { EditorPanels, MessageTypes } from '../../core/constants.js';
 
 import { A } from './Actions.jsx';
+import Context from './Context.jsx';
 import { Dropdown } from './Dropdown.jsx';
 import { Key } from './Key';
 import { Translations } from './Translations.jsx';
-import { ResizablePanels } from './utils/ResizablePanels.js';
-
-
-// export const Panels = () => {
-//   return <div className='g-panels'>
-//     <div className='g-panels-left'>
-//       <Key/>
-//       <Translations/>
-//     </div>
-//     <div className='g-panels-right'>
-//       <div className='g-panels-right-top'>
-//         <Dropdown title="A-i18n" as={[A.reportBug, A.goToRepository]}/>
-//       </div>
-//       <div className='g-panels-right-bottom'>
-//         <Dropdown title="Changes" as={[A.revertUpdates]}/>
-//       </div>
-//       <div>Save</div>
-//     </div>
-//   </div>;
-// };
+import { ResizablePanels } from './utils/ResizablePanels.jsx';
+import useMessage from './utils/useMessage.js';
 
 
 export const Panels = () => {
-  return <ResizablePanels className="g-panels"
-        direction="row"
-        width="100%"
-        height="100%"
-        panelsSize={[75, 25]}
-        sizeUnitMeasure="%"
-        resizerColor="#353b48"
-        resizerSize="30px">
-    <div className='panel-left'>
-      <Key/>
-      <Translations/>
-    </div>
-    <ResizablePanels
-      direction="column"
-      width="100%"
-      height="100%"
-      panelsSize={[50, 50]}
-      sizeUnitMeasure="%"
-      resizerColor="#dcdde1"
-      resizerSize="100px"
-    >
-      <div className='l-panels-right-top'>
-        <Dropdown title="A-i18n" as={[A.reportBug, A.goToRepository]}/>
+
+  const { workspaceState } = useContext(Context);
+
+  useMessage(message => {
+    if (message.type === MessageTypes.Init) {
+      console.log('TODO remove Panels INIT', message);
+    }
+  });
+
+  const rps = workspaceState[EditorPanels.row.key] || EditorPanels.row.value;
+  const cps = workspaceState[EditorPanels.column.key] || EditorPanels.column.value;
+
+  return (
+    <ResizablePanels className="g-panels" direction="row" stateKey={EditorPanels.row.key} panelsSize={rps} panelsMinMax={[50, 90]}>
+      <div className="lp-left">
+        <Key/>
+        <Translations/>
       </div>
-      <div className='l-panels-right-bottom'>
-      <div>
-        <Dropdown title="Changes" as={[A.revertUpdates]}/>
-      </div>
-      <div>Save</div>
-      </div>
+      <ResizablePanels className="lp-right" direction="column" stateKey={EditorPanels.column.key} panelsSize={cps} panelsMinMax={[25, 75]}>
+        <div className="lp-right-top">
+          <Dropdown title="A-i18n" as={[A.reportBug, A.goToRepository]}/>
+        </div>
+        <div className="lp-right-bottom">
+          <div>
+            <Dropdown title="Changes" as={[A.revertUpdates]}/>
+          </div>
+          <div>Save</div>
+        </div>
+      </ResizablePanels>
     </ResizablePanels>
-  </ResizablePanels>;
+  );
 };
 

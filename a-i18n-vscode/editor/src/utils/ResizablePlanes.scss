@@ -1,0 +1,97 @@
+
+
+$border: 1;
+$pad: 2;
+$width: $pad * 2 + $border;
+
+.g-resizable-planes {
+
+  width: 100%;
+  height: 100%;
+  display: flex;
+
+  > .lrp-draggable {
+    position: relative;
+
+    > .lrp-area {
+
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      > .lrp-line {
+        pointer-events: none;
+        background: var(--color-border);
+        transition: background-color .1s ease-out, width .1s ease-out, height .1s ease-out;
+        transition-delay: 200ms;
+      }
+    }
+
+  }
+
+  > .lrp-panel {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  &.row {
+
+    flex-direction: row;
+
+    > .lrp-draggable {
+
+      width: 0;
+      height: 100%;
+
+      > .lrp-area {
+        cursor: ew-resize;
+        left: -1 * ($pad + $border);
+        top: 0;
+        width: $width;
+        height: 100%;
+
+        > .lrp-line {
+          width: 1px;
+          height: 100%;
+        }
+      }
+
+      &:hover > .lrp-area > .lrp-line {
+        background: var(--color-border-focus);
+        width: $width;
+      }
+    }
+  }
+
+  &.column {
+
+    flex-direction: column;
+
+    > .lrp-draggable {
+
+      width: 100%;
+      height: 0;
+
+      > .lrp-area {
+        cursor: ns-resize;
+        left: 0;
+        top: -1 * ($pad + $border);
+        width: 100%;
+        height: $width;
+
+        > .lrp-line {
+          height: 1px;
+          width: 100%;
+        }
+      }
+
+      &:hover > .lrp-area > .lrp-line {
+        background: var(--color-border-focus);
+        height: $width;
+      }
+    }
+  }
+
+}

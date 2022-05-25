@@ -13,6 +13,7 @@ export class StatusBarManager {
     item.command = "a-i18n-vscode.open";
     item.text = `$(symbol-parameter) A-i18n`;
     item.hide();
+    return this;
   }
 
   update (paths = []) {
