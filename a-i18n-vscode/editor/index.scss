@@ -1,0 +1,74 @@
+
+@import './src/Panels.scss';
+@import './src/Editor.scss';
+@import './src/Icons.scss';
+@import './src/Dropdown.scss';
+@import './src/Space.scss';
+@import './src/Key.scss';
+@import './src/Actions.scss';
+@import './src/Translations.scss';
+@import './src/utils/ResizablePlanes.scss';
+
+
+@function px-to-rem($size) {
+  @return #{$size * 0.0769}rem;
+}
+
+:root {
+
+  --h: 100%;
+
+  --h-icon: 1.25em;
+  --h-icon-padding: 0.214em;
+  --h-icon-upper: 1.35em;
+
+  --p-lg: #{px-to-rem(20)};
+  --p-md: #{px-to-rem(10)};
+  --p-sm: #{px-to-rem(8)};
+  --p-xs: #{px-to-rem(4)};
+  --p-xxs: #{px-to-rem(2)};
+
+  --input-h: #{px-to-rem(32)};
+  --locale-w: #{px-to-rem(40)};
+
+  // font for ui
+  --f-family: var(--vscode-font-family);
+  --f-weight: var(--vscode-font-weight);
+  --f-size: var(--vscode-font-size);
+
+  // font for code
+  --fe-family: var(--vscode-editor-font-family);
+  --fe-weight: var(--vscode-editor-font-weight);
+  --fe-size: var(--vscode-editor-font-size);
+
+  --color: var(--vscode-foreground);
+  --color-disabled: var(--vscode-disabledForeground);
+  --color-locale: var(--vscode-descriptionForeground);
+
+  --color-border: var(--vscode-input-background);
+  --color-border-focus: var(--vscode-focusBorder);
+
+  --color-success: var(--vscode-extensionIcon-preReleaseForeground);
+  --color-danger: var(--vscode-editorError-foreground);
+  --color-background: var(--vscode-editor-background);
+
+  --bold: 600;
+
+  --border-width: 1px;
+  --border-radius: 2px;
+}
+
+html, body, #root {
+
+  overflow: hidden;
+
+  height: var(--h);
+  min-height: var(--h);
+  max-height: var(--h);
+
+  padding: 0;
+
+  font-family: var(--f-family);
+  font-weight: var(--f-weight);
+  font-size: var(--f-size);
+}

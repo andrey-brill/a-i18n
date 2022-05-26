@@ -1,13 +1,12 @@
 
 
-$border-width: 1px;
-$border: $border-width solid var(--color-border);
-$topper-offset: 10px;
+$border: var(--border-width) solid var(--color-border);
+
 
 .g-translations {
 
-  margin-top: -1 * $topper-offset;
-  padding-top: $topper-offset;
+  margin-top: calc(-1 * var(--p-md));
+  padding-top: var(--p-md);
   overflow-y: overlay;
   overflow-x: hidden;
 
@@ -17,10 +16,10 @@ $topper-offset: 10px;
     border-bottom: $border;
     background: var(--color-background);
 
-    padding-bottom: 2px + $topper-offset;
+    padding-bottom: calc(var(--p-xs) + var(--p-md));
 
     &:not(:first-child) {
-      margin-top: -1 * $border-width;
+      margin-top: calc(-1 * var(--border-width));
     }
 
 
@@ -35,14 +34,13 @@ $topper-offset: 10px;
 
       .actions {
 
-        font-size: 88%;
+        font-size: 0.88rem;
         text-transform: uppercase;
-        letter-spacing: 0.2px;
+        letter-spacing: 0.016rem;
         font-weight: 300;
-        padding-top: 1px;
 
         .g-icon {
-          height: 17px;
+          height: var(--h-icon-upper);
         }
       }
 
@@ -61,20 +59,21 @@ $topper-offset: 10px;
 
       .g-topper {
 
-        margin-top: -1 * $topper-offset;
-        height: $topper-offset;
+        margin-top: calc(-1 * var(--p-md));
+        height: var(--p-md);
 
         .g-topper-children {
-          margin-top: 3px - $topper-offset;
-          padding-left: var(--ph);
-          padding-right: var(--ph);
+          margin-top: calc(var(--p-xs) - var(--p-md));
+          padding-left: var(--p-lg);
+          padding-right: var(--p-lg);
         }
 
         .g-topper-black {
-          height: $topper-offset - 1px;
+          height: var(--p-md);
           background: var(--color-background);
           border-top: $border;
-          border-radius: 2 * $border-width;
+          border-radius: var(--border-radius);
+          box-sizing: border-box;
         }
 
         &:first-child .g-topper-black {
@@ -95,22 +94,24 @@ $topper-offset: 10px;
       font-family: var(--fe-family);
       font-weight: var(--fe-weight);
 
-      padding-left: calc(var(--ph) - 3px);
-      padding-right: var(--ph);
-      margin-top: 4px + $topper-offset;
+      padding-left: calc(var(--p-lg) - var(--h-icon-padding));
+      padding-right: var(--p-lg);
+      margin-top: calc(var(--p-xs) + var(--p-md));
 
       .line {
+
         display: flex;
+        align-items: center;
 
         > span:first-child {
-          margin-right: 8px;
+          margin-right: var(--p-sm);
         }
       }
 
       .diff {
 
         color: var(--color-locale);
-        margin-top: -3px;
+        margin-top: calc(-1 * var(--p-xxs));
 
         > div > span {
 

@@ -11,8 +11,8 @@
 
   .g-key-locale {
 
-    padding-left: var(--ph);
-    padding-right: var(--ph);
+    padding-left: var(--p-lg);
+    padding-right: var(--p-lg);
     height: var(--input-h);
     display: flex;
     align-items: center;
@@ -25,22 +25,23 @@
       min-width: var(--locale-w);
       max-width: var(--locale-w);
       justify-content: space-between;
-      font-size: 80%;
+      font-size: 0.8rem;
     }
   }
 
   .g-key-value {
 
-    height: calc(1.4 * var(--input-h));
+    padding-top: var(--p-xs);
+    height: var(--input-h);
+    padding-bottom: var(--p-sm);
     display: flex;
     align-items: center;
+    font-size: 1.2rem;
 
     > span {
-      font-size: 120%;
       font-weight: var(--bold);
-      line-height: 1px;
-      padding-right: var(--ph-md);
-      padding-left: var(--ph-md);
+      padding-right: var(--p-lg);
+      padding-left: var(--p-lg);
     }
 
     > div {

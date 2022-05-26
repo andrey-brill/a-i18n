@@ -1,20 +1,5 @@
 
 
-html, body, #root {
-
-  overflow: hidden;
-
-  height: var(--h);
-  min-height: var(--h);
-  max-height: var(--h);
-
-  padding: 0;
-
-  font-family: var(--f-family);
-  font-weight: var(--f-weight);
-  font-size: var(--f-size);
-}
-
 
 .g-loading {
 

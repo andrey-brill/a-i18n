@@ -1,10 +1,13 @@
+
 import React from 'react';
 
+
 const SvgHeight = 80;
+const OffsetY = 5; // Making icons on the same line as text
 
 const Icon = ({  className = '', style, width = SvgHeight, height = SvgHeight, children }) => {
   return (
-    <svg className={'g-icon ' + className} style={style} viewBox={`0 0 ${width} ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={'g-icon ' + className} style={style} viewBox={`0 -${OffsetY} ${width} ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg">
       {children}
     </svg>
   );
