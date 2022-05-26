@@ -74,6 +74,7 @@ const Action = ({ a, onClick, showTitle }) => {
   const click = (e) => {
     e.preventDefault();
     console.log('click', e);
+    onClick(a);
   }
 
   const action = getAction(a);

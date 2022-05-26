@@ -46,9 +46,9 @@ export const Editor = () => {
     );
   }
 
-  return (<div className='g-loading'>
-    <div className='ll-container'>
+  return (
+    <div className='g-loading'>
       <IconLoad/>
     </div>
-  </div>);
+  );
 }

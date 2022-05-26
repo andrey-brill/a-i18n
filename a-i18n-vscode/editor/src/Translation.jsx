@@ -8,9 +8,9 @@ import { Space } from './Space.jsx';
 
 
 const Topper = ({ children }) => (
-  <div className='g-topper'>
-    <div className='g-topper-black'></div>
-    <div className='g-topper-children'>{children}</div>
+  <div className='lt-topper'>
+    <div className='lt-topper-black'></div>
+    <div className='lt-topper-children'>{children}</div>
   </div>
 )
 
@@ -20,7 +20,7 @@ export const Translation = ({ locale, approved = false, value, comment, previous
   // auto disapprove on change value
 
   const localeParts = locale.split('-');
-  const disabledClass = localeParts.length === 1 ? 'disabled' : undefined;
+  const disabledClass = localeParts.length === 1 ? 'lt-disabled' : undefined;
 
   let diff = undefined;
   if (previousValue) {
@@ -28,34 +28,34 @@ export const Translation = ({ locale, approved = false, value, comment, previous
   }
 
   return <div className='g-translation'>
-    <div className='g-translation-header'>
+    <div className='lt-header'>
       <Topper>
-        <div className='locale'><span>{localeParts[0]}</span><span className={disabledClass}>-</span><span className={disabledClass}>{localeParts[1] || 'XX'}</span></div>
+        <div className='lt-locale'><span>{localeParts[0]}</span><span className={disabledClass}>-</span><span className={disabledClass}>{localeParts[1] || 'XX'}</span></div>
       </Topper>
-      <div className='grow'/>
+      <div className='lt-grow'/>
       <Topper>
-        <Space.div className='actions' x={5}>
+        <Space.div className='lt-actions' x={5}>
             <ActionLink a={ approved ? A.disapprove : A.approve } />
             <ActionLink a={A.addComment} />
             <ActionLink a={A.revertUpdate} />
         </Space.div>
       </Topper>
     </div>
-    <div className='content'>
-      <div className='line value'>
+    <div className='lt-content'>
+      <div className='lt-line lt-value'>
         <span>{ approved ? <IconApprove/> : <IconCheckOff/> }</span>
         <div>{value}</div>
       </div>
       {
         diff &&
-        <div className='line diff'>
+        <div className='lt-line lt-diff'>
           <span><IconDiff /></span>
-          <div>{diff.map((part, i) => <span key={i} className={part.added ? 'added' : (part.removed ? 'removed' : undefined)}>{part.value}</span>)}</div>
+          <div>{diff.map((part, i) => <span key={i} className={part.added ? 'lt-added' : (part.removed ? 'lt-removed' : undefined)}>{part.value}</span>)}</div>
         </div>
       }
       {
         comment &&
-        <div className='line comment'>
+        <div className='lt-line lt-comment'>
           <span><IconComment /></span>
           <div>{comment}</div>
         </div>

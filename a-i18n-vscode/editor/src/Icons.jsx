@@ -5,9 +5,9 @@ import React from 'react';
 const SvgHeight = 80;
 const OffsetY = 5; // Making icons on the same line as text
 
-const Icon = ({  className = '', style, width = SvgHeight, height = SvgHeight, children }) => {
+const Icon = ({  className = '', style, width = SvgHeight, offsetY = OffsetY, height = SvgHeight, children }) => {
   return (
-    <svg className={'g-icon ' + className} style={style} viewBox={`0 -${OffsetY} ${width} ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={'g-icon ' + className} style={style} viewBox={`0 -${offsetY} ${width} ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg">
       {children}
     </svg>
   );
@@ -87,7 +87,7 @@ export const IconDiff = () => <Icon>
   <path d="M23.3501 16L16 21.7425"/>
 </Icon>
 
-export const IconLoad = () => <Icon className='li-spin'>
+export const IconLoad = () => <Icon className='li-spin' offsetY={0}>
   <path d="M55.1518 20.1026C51.8232 17.5508 47.9999 15.9495 44.0504 15.2987L44.027 9.23021C49.5374 9.95449 54.8904 12.1593 59.4427 15.8447L55.1518 20.1026Z"/>
   <path d="M60.3934 25.5469L64.6719 21.2353C68.1467 25.8072 70.1825 31.1236 70.7791 36.5677L64.731 36.5444C64.1978 32.6617 62.7519 28.8803 60.3934 25.5469Z"/>
   <path d="M64.6217 44.1031L70.6919 44.0797C69.979 49.4328 67.8683 54.6354 64.3598 59.0973L60.093 54.7975C62.479 51.5681 63.9886 47.8945 64.6217 44.1031Z"/>

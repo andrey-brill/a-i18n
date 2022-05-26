@@ -6,10 +6,10 @@ import { Space } from './Space.jsx';
 export const Key = () => {
   return (
     <div className='g-key'>
-      <div className='g-key-locale'>
+      <div className='lk-locale'>
         <label><span>l</span><span>o</span><span>c</span><span>a</span><span>l</span><span>e</span></label>
       </div>
-      <div className='g-key-value'>
+      <div className='lk-value'>
         <span>hello.world.key</span>
         <Space.div>
           <ActionIcon a={A.copyKey} />

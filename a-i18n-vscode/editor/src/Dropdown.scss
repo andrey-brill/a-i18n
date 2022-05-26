@@ -12,22 +12,22 @@
 
   &:hover {
 
-    .g-dropdown-content {
+    .ld-content {
       display: flex;
     }
 
-    .g-dropdown-title {
+    .ld-title {
       text-decoration: underline;
     }
   }
 }
 
-.g-dropdown-title {
+.ld-title {
   text-transform: uppercase;
   font-weight: var(--bold);
 }
 
-.g-dropdown-content {
+.ld-content {
 
   display: none;
 

@@ -5,11 +5,11 @@
   flex-direction: row;
   width: 100%;
 
-  .g-key-value {
+  .lk-value {
     flex-basis: 100%;
   }
 
-  .g-key-locale {
+  .lk-locale {
 
     padding-left: var(--p-lg);
     padding-right: var(--p-lg);
@@ -29,7 +29,7 @@
     }
   }
 
-  .g-key-value {
+  .lk-value {
 
     padding-top: var(--p-xs);
     height: var(--input-h);
