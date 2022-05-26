@@ -9,7 +9,7 @@
 @import './src/Translation.scss';
 @import './src/Translations.scss';
 @import './src/utils/ResizablePlanes.scss';
-
+@import './src/Textarea.scss';
 
 @function px-to-rem($size) {
   @return #{$size * 0.0769}rem;

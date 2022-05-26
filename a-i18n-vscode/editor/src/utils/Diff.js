@@ -258,8 +258,6 @@ function clonePath(path) {
 // Latin Extended Additional, 1E00–1EFF
 const extendedWordChars = /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C8}-\u{2D7}\u{2DE}-\u{2FF}\u{1E00}-\u{1EFF}]+$/u;
 
-const reWhitespace = /\S/;
-
 const wordDiff = new Diff();
 
 wordDiff.equals = function(left, right) {
@@ -267,12 +265,12 @@ wordDiff.equals = function(left, right) {
     left = left.toLowerCase();
     right = right.toLowerCase();
   }
-  return left === right || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
+  return left === right;
 };
 
 wordDiff.tokenize = function(value) {
-  // All whitespace symbols except newline group into one token, each newline - in separate token
-  let tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
+
+  let tokens = value.split(/([\s()[\]{}'"\r\n_]|\b)/);
 
   // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
   for (let i = 0; i < tokens.length - 1; i++) {
@@ -289,7 +287,7 @@ wordDiff.tokenize = function(value) {
   return tokens;
 };
 
+
 export function diffWords(oldStr, newStr, options = {}) {
-  options = Object.assign(options, { ignoreWhitespace: true });
   return wordDiff.diff(oldStr, newStr, options);
 }

@@ -69,18 +69,19 @@ function getAction (action) {
   }
 }
 
-const Action = ({ a, onClick, showTitle }) => {
-
-  const click = (e) => {
-    e.preventDefault();
-    console.log('click', e);
-    onClick(a);
-  }
-
+const Action = ({ a, disabled, onClick, showTitle }) => {
   const action = getAction(a);
-  return <Space.a className='g-action' x={showTitle ? 2 : 1} id={a} onClick={click} title={action.details}>{action.icon}{showTitle ? action.title : undefined}</Space.a>;
+  return <Space.a className={'g-action ' + (disabled ? 'la-disabled' : '')} x={showTitle ? 2 : 1} id={disabled ? undefined : a} onClick={onClick} title={action.details}>{action.icon}{showTitle ? action.title : undefined}</Space.a>;
 }
 
-export const ActionLink = ({a, onClick}) => <Action a={a} onClick={onClick} showTitle={true}/>
+export const ActionLink = ({a, onClick, disabled}) => <Action a={a} onClick={onClick} disabled={disabled} showTitle={true}/>
 
-export const ActionIcon = ({a, onClick}) => <Action a={a} onClick={onClick} showTitle={false}/>
+export const ActionIcon = ({a, onClick, disabled}) => <Action a={a} onClick={onClick} disabled={disabled} showTitle={false}/>
+
+export const onAction = (onClick) => (e) => {
+
+  e.preventDefault();
+
+  const a = e.target.id || e.currentTarget.id;
+  if (a) onClick(a);
+}

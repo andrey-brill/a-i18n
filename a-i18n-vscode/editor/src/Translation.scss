@@ -5,6 +5,7 @@ $border: var(--border-width) solid var(--color-border);
 
 .g-translation {
 
+  position: relative;
   border-top: $border;
   border-bottom: $border;
   background: var(--color-background);
@@ -15,6 +16,15 @@ $border: var(--border-width) solid var(--color-border);
     margin-top: calc(-1 * var(--border-width));
   }
 
+  &:hover::before {
+    content: " ";
+    position: absolute;
+    height: 100%;
+    width: vat(--p-xs);
+    left: 0;
+    top: 0;
+    color: vat(--color-border-focus);
+  }
 
   .lt-header {
 
@@ -98,6 +108,11 @@ $border: var(--border-width) solid var(--color-border);
 
       > span:first-child {
         margin-right: var(--p-sm);
+        align-self: normal;
+      }
+
+      > div, textarea {
+        flex-grow: 1;
       }
     }
 
@@ -105,6 +120,10 @@ $border: var(--border-width) solid var(--color-border);
 
       color: var(--color-locale);
       margin-top: calc(-1 * var(--p-xxs));
+
+      .g-icon {
+        opacity: 0.4;
+      }
 
       > div > span {
 

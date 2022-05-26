@@ -1,0 +1,16 @@
+
+textarea.g-textarea {
+  border: none;
+  resize: none;
+  overflow: hidden;
+  height: auto;
+  outline: none !important;
+  background: var(--color-background);
+  color: inherit;
+  line-height: 1em;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  padding: 0;
+  padding-top: 0.1em;
+}

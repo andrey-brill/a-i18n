@@ -3,8 +3,15 @@
 
   color: var(--vscode-editor-foreground) !important;
   text-decoration: none;
+  outline: none !important;
 
   &:hover {
     text-decoration: underline;
+  }
+
+  &.la-disabled {
+    opacity: 0.3;
+    user-select: none;
+    pointer-events: none;
   }
 }

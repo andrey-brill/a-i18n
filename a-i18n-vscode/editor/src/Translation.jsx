@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 
-import { A, ActionLink } from './Actions.jsx';
+import { A, ActionLink, onAction } from './Actions.jsx';
 import { IconApprove, IconCheckOff, IconComment, IconDiff } from './Icons.jsx';
 import { diffWords } from './utils/Diff.js';
 import { Space } from './Space.jsx';
+import { Textarea } from './Textarea.jsx';
 
 
 const Topper = ({ children }) => (
@@ -14,18 +15,113 @@ const Topper = ({ children }) => (
   </div>
 )
 
-export const Translation = ({ locale, approved = false, value, comment, previousValue, onChange }) => {
+const prepare = (value) => (value || '').replace(/\s/g, '⎵');
 
-  // TODO safe + unsafe value
-  // auto disapprove on change value
+const DiffLine = ({ previous = '', current = '' }) => {
+
+  let diffValue = undefined;
+  if (previous !== current) {
+    diffValue = diffWords(previous || '', current);
+  }
+
+  return <>
+    {
+      diffValue &&
+      <div className='lt-line lt-diff'>
+        <span><IconDiff /></span>
+        <div>{diffValue.map((part, i) => <span key={i} className={part.added ? 'lt-added' : (part.removed ? 'lt-removed' : undefined)}>{prepare(part.value)}</span>)}</div>
+      </div>
+    }
+  </>
+}
+
+const strCompare = (a, b) => (a || '') === (b || '');
+const boolCompare = (a, b) => (!!a) === (!!b);
+const hasComment = (t) => t && t.comment && t.comment.length > 0;
+
+export const Translation = ({ locale, current, previous, onChange }) => {
+
+  const [t, setT] = useState(current); // ignoring incoming updates on change
+
+  const [forceUpdate, setForceUpdate] = useState(1);
+
+  const [showComment, setShowComment] = useState(hasComment(current));
+
+  const updater = useRef();
+  if (!updater.current) {
+
+    const single = Object.assign({ locale }, current);
+
+    const updateT = (updates) => {
+
+      Object.assign(single, updates);
+
+      const copy = Object.assign({}, single);
+      setT(copy)
+      onChange(copy);
+    };
+
+    updater.current = {
+
+      setValue: (v) => {
+        updateT({
+          value: v,
+          approved: false
+        });
+      },
+
+      setComment: (c) => {
+        updateT({
+          comment: c
+        })
+      },
+
+      onAction: onAction((action) => {
+
+        switch(action) {
+
+          case A.approve:
+            updateT({ approved: true });
+            break;
+
+          case A.disapprove:
+            updateT({ approved: false });
+            break;
+
+          case A.addComment:
+            setShowComment(true);
+            break;
+
+          case A.removeComment:
+
+            setShowComment(false);
+
+            if (single.comment && single.comment.length > 0) {
+              updater.current.setComment('');
+            }
+
+            break;
+
+          case A.revertUpdate:
+
+            if (previous) {
+              setForceUpdate(Math.round(Math.random() * 10000));
+              updateT(previous);
+              setShowComment(hasComment(previous));
+            }
+
+            break;
+        }
+      })
+    }
+  }
+
+  console.log('render t', JSON.stringify(t));
 
   const localeParts = locale.split('-');
   const disabledClass = localeParts.length === 1 ? 'lt-disabled' : undefined;
 
-  let diff = undefined;
-  if (previousValue) {
-    diff = diffWords(previousValue, value || '');
-  }
+  const changed = previous && (!strCompare(t.value, previous.value) || !boolCompare(t.approved, previous.approved) || !strCompare(t.comment, previous.comment));
 
   return <div className='g-translation'>
     <div className='lt-header'>
@@ -34,30 +130,27 @@ export const Translation = ({ locale, approved = false, value, comment, previous
       </Topper>
       <div className='lt-grow'/>
       <Topper>
-        <Space.div className='lt-actions' x={5}>
-            <ActionLink a={ approved ? A.disapprove : A.approve } />
-            <ActionLink a={A.addComment} />
-            <ActionLink a={A.revertUpdate} />
+        <Space.div className='lt-actions' x={5} onClick={updater.current.onAction}>
+            <ActionLink a={ t.approved ? A.disapprove : A.approve } />
+            <ActionLink a={ showComment ? A.removeComment : A.addComment } />
+            <ActionLink a={A.revertUpdate} disabled={!changed} />
         </Space.div>
       </Topper>
     </div>
     <div className='lt-content'>
       <div className='lt-line lt-value'>
-        <span>{ approved ? <IconApprove/> : <IconCheckOff/> }</span>
-        <div>{value}</div>
+        <span>{ t.approved ? <IconApprove/> : <IconCheckOff/> }</span>
+        <Textarea key={'update-' + forceUpdate} initialValue={t.value} setValue={updater.current.setValue}/>
       </div>
       {
-        diff &&
-        <div className='lt-line lt-diff'>
-          <span><IconDiff /></span>
-          <div>{diff.map((part, i) => <span key={i} className={part.added ? 'lt-added' : (part.removed ? 'lt-removed' : undefined)}>{part.value}</span>)}</div>
-        </div>
+        previous &&
+        <DiffLine previous={previous.value} current={t.value} />
       }
       {
-        comment &&
+        showComment &&
         <div className='lt-line lt-comment'>
           <span><IconComment /></span>
-          <div>{comment}</div>
+          <Textarea initialValue={t.comment} setValue={updater.current.setComment}/>
         </div>
       }
     </div>
