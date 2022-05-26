@@ -35,7 +35,8 @@ export const detectLocale$ = (fileName) => {
   return match ? match[2] + (match[3] || '') : undefined;
 };
 
-export const safeValue$ = (value = '') => value.trim().replace(/\n/g, NewLineSymbol);
+
+export const safeValue$ = (value = '') => value.replace(/\n/g, NewLineSymbol);
 export const unsafeValue$ = (value = '') => value.replace(NewLineSymbolRegEx, '\n');
 
 
