@@ -9,12 +9,17 @@
 @import './Translations.scss';
 @import './utils/ResizablePlanes.scss';
 
+
+// use rem instead of px
+
 :root {
 
   --h: 100%;
 
   --ph: 20px;
   --pv: 15px;
+
+  --h-icon: 1.25em;
 
   --ph-md: 16px;
   --ph-sm: 12px;
@@ -24,7 +29,16 @@
   --input-h: 32px;
   --locale-w: 40px;
 
-  // --color-border: var(--vscode-sideBar-background);
+  // font for ui
+  --f-family: var(--vscode-font-family);
+  --f-weight: var(--vscode-font-weight);
+  --f-size: var(--vscode-font-size);
+
+  // font for code
+  --fe-family: var(--vscode-editor-font-family);
+  --fe-weight: var(--vscode-editor-font-weight);
+  --fe-size: var(--vscode-editor-font-size);
+
   --color: var(--vscode-foreground);
   --color-disabled: var(--vscode-disabledForeground);
   --color-locale: var(--vscode-descriptionForeground);

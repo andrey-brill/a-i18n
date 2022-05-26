@@ -1,7 +1,7 @@
 
 .g-icon {
 
-  height: 20px;
+  height: var(--h-icon);
   user-select: none;
 
   path {
@@ -9,5 +9,20 @@
     stroke: currentColor;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  &.li-spin {
+    animation: g-icon-spin 1s infinite;
+    animation-timing-function: linear;
+  }
+}
+
+
+@keyframes g-icon-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(180deg);
   }
 }

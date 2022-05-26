@@ -5,6 +5,14 @@
     z-index: 1;
   }
 
+  .lp-left {
+    display: flex;
+    flex-direction: column;
+    height: var(--h);
+    min-height: var(--h);
+    max-height: var(--h);
+  }
+
   .lp-left, .lp-right-top, .lp-right-bottom {
     padding-top: var(--pv-xs);
   }

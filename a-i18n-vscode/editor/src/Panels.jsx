@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { EditorPanels, MessageTypes } from '../../core/constants.js';
 
 import { A } from './Actions.jsx';
-import Context from './Context.jsx';
+import { Context } from './Contexts.jsx';
 import { Dropdown } from './Dropdown.jsx';
 import { Key } from './Key';
 import { Translations } from './Translations.jsx';
@@ -16,8 +16,8 @@ export const Panels = () => {
   const { workspaceState } = useContext(Context);
 
   useMessage(message => {
-    if (message.type === MessageTypes.Init) {
-      console.log('TODO remove Panels INIT', message);
+    if (message.type === MessageTypes.Update) {
+      console.log('TODO remove Panels Update', message);
     }
   });
 

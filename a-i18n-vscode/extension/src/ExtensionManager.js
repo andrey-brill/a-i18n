@@ -105,6 +105,9 @@ export class ExtensionManager extends Disposable {
 
         this.nonActiveReason = null;
 
+        // TODO remove
+        this.openEditor();
+
         return Promise.all(managers.map(m => m.connect()));
       })
       .catch(e => {

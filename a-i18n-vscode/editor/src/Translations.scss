@@ -91,6 +91,10 @@ $topper-offset: 10px;
 
     .content {
 
+      font-size: var(--fe-size);
+      font-family: var(--fe-family);
+      font-weight: var(--fe-weight);
+
       padding-left: calc(var(--ph) - 3px);
       padding-right: var(--ph);
       margin-top: 4px + $topper-offset;
@@ -104,16 +108,24 @@ $topper-offset: 10px;
       }
 
       .diff {
+
         color: var(--color-locale);
         margin-top: -3px;
-        font-weight: 300;
 
-        .added {
-          color: var(--color-success);
-        }
-        .removed  {
-          color: var(--color-danger);
-          text-decoration: line-through;
+        > div > span {
+
+          opacity: 0.4;
+
+          &.added {
+            opacity: 0.8;
+            color: var(--color-success);
+          }
+
+          &.removed  {
+            opacity: 0.8;
+            color: var(--color-danger);
+            text-decoration: line-through;
+          }
         }
       }
 

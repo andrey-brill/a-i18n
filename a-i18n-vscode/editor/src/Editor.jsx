@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
 
-import Context from './Context.jsx';
+import { Context, State } from './Contexts.jsx';
 import { MessageTypes } from '../../core/constants.js';
 import { Panels } from './Panels';
 import useMessage from './utils/useMessage.js';
 import { VsCode } from './utils/VsCode.js';
+import { IconLoad } from './Icons.jsx';
 
 
 export const Editor = () => {
@@ -38,10 +39,16 @@ export const Editor = () => {
   if (context && state) {
     return (
       <Context.Provider value={context}>
-        <Panels/>
+        <State.Provider value={state}>
+          <Panels/>
+        </State.Provider>
       </Context.Provider>
     );
   }
 
-  return (<div>Loading...</div>);
+  return (<div className='g-loading'>
+    <div className='ll-container'>
+      <IconLoad/>
+    </div>
+  </div>);
 }
