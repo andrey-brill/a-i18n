@@ -6,6 +6,7 @@ import { IconApprove, IconCheckOff, IconComment, IconDiff } from './Icons.jsx';
 import { diffWords } from './utils/Diff.js';
 import { Space } from './Space.jsx';
 import { Textarea } from './Textarea.jsx';
+import { hasComment$, tCompare$ } from '../../../a-i18n-core-js/index.js';
 
 
 const Topper = ({ children }) => (
@@ -35,9 +36,7 @@ const DiffLine = ({ previous = '', current = '' }) => {
   </>
 }
 
-const strCompare = (a, b) => (a || '') === (b || '');
-const boolCompare = (a, b) => (!!a) === (!!b);
-const hasComment = (t) => t && t.comment && t.comment.length > 0;
+
 
 export const Translation = ({ locale, current, previous, onChange }) => {
 
@@ -45,7 +44,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
 
   const [forceUpdate, setForceUpdate] = useState(1);
 
-  const [showComment, setShowComment] = useState(hasComment(current));
+  const [showComment, setShowComment] = useState(hasComment$(current));
 
   const updater = useRef();
   if (!updater.current) {
@@ -107,7 +106,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
             if (previous) {
               setForceUpdate(Math.round(Math.random() * 10000));
               updateT(previous);
-              setShowComment(hasComment(previous));
+              setShowComment(hasComment$(previous));
             }
 
             break;
@@ -121,7 +120,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
   const localeParts = locale.split('-');
   const disabledClass = localeParts.length === 1 ? 'lt-disabled' : undefined;
 
-  const changed = previous && (!strCompare(t.value, previous.value) || !boolCompare(t.approved, previous.approved) || !strCompare(t.comment, previous.comment));
+  const changed = previous && !tCompare$(t, previous);
 
   return <div className='g-translation'>
     <div className='lt-header'>

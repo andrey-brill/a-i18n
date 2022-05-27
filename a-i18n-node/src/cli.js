@@ -20,7 +20,7 @@ if (init && init.indexOf('I18n') === 0) {
 }
 
 if (actions.length > 0) {
-  const first = 'i18m.' + actions.shift();
+  const first = 'i18n.' + actions.shift();
   const next = actions.map(action => '.then(() => i18n.' + action + ')').join('');
   eval(first + next);
 }

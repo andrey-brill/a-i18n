@@ -19,3 +19,10 @@ export const MessageTypes = {
   Update: 'Update',
   UpdateWorkspaceState: 'UpdateWorkspaceState'
 }
+
+export const KeyState = {
+  New: 'New',
+  Original: 'Original',
+  Deleted: 'Deleted',
+  Updated: 'Updated'
+}

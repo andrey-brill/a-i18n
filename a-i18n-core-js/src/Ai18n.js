@@ -1,6 +1,6 @@
 
-import { ErrorCodes, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, InvalidDirectoryError, NoI18nFilesError, InvalidKeyError, ExportError, NoI18nJsFileError } from './Errors.js';
-import { simpleDebounce$, safeValue$, detectLocale$, isI18nFile$, isI18nJsFile$, getTime$, unsafeValue$, commentLine$, valueLine$, deleteLine$, splitFK$, buildFK$, toBacklog$, toPromise } from './Utils.js';
+import { ErrorCodes, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, NotUniqueI18nFilesError, InvalidKeyError, NoI18nJsFileError } from './Errors.js';
+import { simpleDebounce$, safeValue$, detectLocale$, isI18nFile$, isI18nJsFile$, getTime$, unsafeValue$, commentLine$, valueLine$, deleteLine$, splitFK$, buildFK$, toBacklog$, toPromise, tCompare$, strCompare$, boolCompare$ } from './Utils.js';
 import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, AutoExport, ManualExport, TypeFile, DefaultI18n } from './Constants.js';
 
 import { SortedArray } from './SortedArray.js';
@@ -50,10 +50,7 @@ export class Ai18n {
       this.renameKey,
       this.revertUpdates,
       this.save,
-      this.updateApproved,
-      this.updateComment,
-      this.updateTranslation,
-      this.updateValue
+      this.updateTranslation
     ]
   }
 
@@ -69,10 +66,9 @@ export class Ai18n {
 
     this.state = {
       keys: new SortedArray(),
-      updates: undefined,
-      updated: {},
       origins: {},
-      files: [],
+      files: {}, // by locale
+      locales: [],
       error: null,
       loaded: false
     };
@@ -80,23 +76,36 @@ export class Ai18n {
     this._resetUpdates$();
   }
 
-  _resetUpdates$() {
+  _setFiles$(files = []) {
 
+    const filesByLocale = {};
+    for (const file of files) {
+      filesByLocale[file.locale] = file;
+    }
+
+    this.state.files = filesByLocale;
+    this.state.locales = Object.keys(filesByLocale);
+
+    if (this.state.locales.length !== files.length) {
+      throw new NotUniqueI18nFilesError();
+    }
+
+  }
+
+  _resetUpdates$() {
     this.state.updates = {
-      length: 0,
+      keys: new Set(),
+      fullKeys: new Set(),
       before: {},
       after: {}
     };
-
-    // needed to make possible save without reloading
-    this.state.updated = Object.assign({}, this.state.origins);
   }
 
   _cloneState$() {
     return Object.assign({},
       this.state,
       {
-        files: [...this.state.files],
+        locales: [...this.state.locales],
         keys: {
           array: this.state.keys.array,
           changed: this.state.keys.changed
@@ -132,7 +141,7 @@ export class Ai18n {
   _validateKey$(key) {
 
     if (key && key.length > 0 && key.indexOf(KeyValueSeparator) === -1) {
-      return;
+      return true;
     }
 
     throw new InvalidKeyError(key);
@@ -154,30 +163,24 @@ export class Ai18n {
 
   }
 
-
-  _updateState$(fileName, content) {
+  _updateState$(locale, content) {
 
     const lines = parseLines$(content);
 
-    const { keys, origins, updates, updated } = this.state;
+    const { keys, origins, updates } = this.state;
 
     const keysState = {};
     for (const parsedLine of lines) {
 
-      const fullKey = buildFK$(fileName, parsedLine.key);
-
-      updates.length++;
-      updates.before[fullKey] = origins[fullKey];
+      const fullKey = buildFK$(locale, parsedLine.key);
+      const before = updates.before[fullKey] = origins[fullKey];
 
       if (parsedLine.type === DeleteKeyLine) {
         delete updates.after[fullKey];
-        delete updated[fullKey];
         keysState[parsedLine.key] = false;
       } else {
-         // order important, updated values should be immutable (as they can be link to origins)
-        const translation = Object.assign({}, updated[fullKey], parsedLine);
-        updated[fullKey] = translation;
-        updates.after[fullKey] = translation;
+        // update must be immutable
+        updates.after[fullKey] = Object.assign({}, before, updates.after[fullKey], parsedLine);
         keysState[parsedLine.key] = true;
       }
     }
@@ -189,8 +192,13 @@ export class Ai18n {
       } else {
         keys.remove(key);
       }
-    })
+    });
 
+  }
+
+  _copyT$(fullKey, newT) {
+    const hasUpdate = !!(this.state.updates.before[fullKey] || this.state.updates.after[fullKey]);
+    return Object.assign({}, hasUpdate ? this.state.updates.after[fullKey] : this.state.origins[fullKey], newT);
   }
 
   _resetAllUpdates() {
@@ -198,42 +206,45 @@ export class Ai18n {
     return Promise.all(this.state.files.map(file => this._fs.delete(toBacklog$(file.path))));
   }
 
-  _updateKeys$() {
+  _updatesFKs$() {
     const updateKeys = new Set();
     Object.keys(this.state.updates.before).forEach(fullKey => updateKeys.add(fullKey));
     Object.keys(this.state.updates.after).forEach(fullKey => updateKeys.add(fullKey));
-    return updateKeys;
+    return this.state.updates.fullKeys = updateKeys;
   }
 
   // removing updates if they don't change the state
   _optimizeUpdates(updates = []) {
     return Promise.all(updates)
       .then(() => {
-        const updateKeys = this._updateKeys$();
-        if (updateKeys.size === 0) {
+
+        const notOptimizedFKs = this._updatesFKs$();
+        if (notOptimizedFKs.size === 0) {
           return true;
         }
 
-        updateKeys.forEach((fullKey) => {
+        const { before, after } = this.state.updates;
 
-          const origins = this.state.origins[fullKey];
-          const updated = this.state.updated[fullKey];
+        notOptimizedFKs.forEach((fullKey) => {
+
+          const origins = before[fullKey];
+          const updated = after[fullKey];
 
           if (origins && updated &&
             safeValue$(origins.comment) === safeValue$(updated.comment) &&
             safeValue$(origins.value) === safeValue$(updated.value) &&
             (origins.approved || false) === (updated.approved || false)) {
-            delete this.state.updates.before[fullKey];
-            delete this.state.updates.after[fullKey];
+            delete before[fullKey];
+            delete after[fullKey];
           }
         });
 
-        const optimizedKeys = this._updateKeys$();
-        this.state.updates.length = optimizedKeys.size;
-
-        if (updateKeys.size > 0 && optimizedKeys.size === 0) {
+        const optimizedFKs = this._updatesFKs$();
+        if (notOptimizedFKs.size > 0 && optimizedFKs.size === 0) {
           return this._resetAllUpdates(); // if all updates reverted then removing backlog files
         } else {
+          const keys = optimizedFKs.map(fk => splitFK$(fk)[1]);
+          this.state.updates.keys = new Set(keys);
           return true;
         }
       })
@@ -256,9 +267,11 @@ export class Ai18n {
   _findI18nFiles() { return this._findFiles(isI18nFile$); };
   _findI18nJsFile() { return this._findFiles(isI18nJsFile$, true); };
 
-  _appendUpdate(fileName, line) {
-    this._updateState$(fileName, line);
-    return this._fs.appendLine(this._fs.pathTo$(toBacklog$(fileName)), line);
+  _fileName$(locale) { return this.state.files[locale].name }
+
+  _appendUpdate(locale, content) {
+    this._updateState$(locale, content);
+    return this._fs.appendContent(this._fs.pathTo$(toBacklog$(this._fileName$(locale))), content);
   }
 
   _autoExport() {
@@ -309,7 +322,7 @@ export class Ai18n {
           files.push(this._nameToFile$(DefaultI18n));
         }
 
-        this.state.files = files;
+        this._setFiles$(files);
 
         const paths = files.map(file => file.path);
         const all = paths.concat(paths.map(toBacklog$));
@@ -321,26 +334,25 @@ export class Ai18n {
 
           const keys = new Set();
 
-          for (let fi = 0; fi < this.state.files.length; fi++) {
+          for (let i = 0; i < this.state.locales.length; i++) {
 
-            const file = this.state.files[fi];
+            const locale = this.state.locales[i];
             const valueKeys = new Set();
             const commentKeys = new Set();
 
-            const lines = parseLines$(contents[fi]);
+            const lines = parseLines$(contents[i]);
             for (let lineNumber = 0; lineNumber < lines.length; lineNumber++) {
 
               const parsedLine = lines[lineNumber];
 
-              const fullKey = buildFK$(file.name, parsedLine.key);
+              const fullKey = buildFK$(locale, parsedLine.key);
 
-              const translation = Object.assign(this.state.origins[fullKey] || {}, parsedLine);
-              this.state.origins[fullKey] = translation
+              this.state.origins[fullKey] = Object.assign(this.state.origins[fullKey] || {}, parsedLine);
 
               const targetSet = parsedLine.type === CommentLine ? commentKeys : valueKeys;
 
               if (targetSet.has(parsedLine.key)) {
-                throw new DuplicateKeyError(parsedLine.key + ` [${file.name}:${lineNumber}]`);
+                throw new DuplicateKeyError(parsedLine.key + ` [${this._fileName$(locale)}:${lineNumber}]`);
               } else {
                 keys.add(parsedLine.key);
                 targetSet.add(parsedLine.key);
@@ -356,11 +368,11 @@ export class Ai18n {
           this._resetUpdates$();
 
           // updates must be applied
-          const backlogOffset = this.state.files.length;
-          for (let fi = 0; fi < this.state.files.length; fi++) {
-            const file = this.state.files[fi];
+          const backlogOffset = this.state.locales.length;
+          for (let fi = 0; fi < backlogOffset; fi++) {
+            const locale = this.state.locales[fi];
             const backlog = contents[backlogOffset + fi];
-            this._updateState$(file.name, backlog);
+            this._updateState$(locale, backlog);
           }
 
         } catch (e) {
@@ -385,10 +397,24 @@ export class Ai18n {
 
       this._lastTimeUpdated = getTime$();
 
-      const files = this.state.files.map(file => Object.assign({}, file, {
-        lines: [],
-        t: undefined
-      }));
+      const files = Object.values(this.state.files)
+        .map(file => Object.assign({}, file, {
+          lines: [],
+          t: undefined
+        }));
+
+      const { origins, updates } = this.state;
+
+      // committing updates
+      const updateKeys = this._updatesFKs$();
+      for (const ufk of updateKeys) {
+        const after = updates.after[ufk];
+        if (after) {
+          origins[ufk] = after;
+        } else {
+          delete origins[ufk];
+        }
+      }
 
       for (const key of this.state.keys.array) {
 
@@ -396,10 +422,10 @@ export class Ai18n {
         let hasValue = false;
 
         for (const file of files) {
-          const fullKey = buildFK$(file.name, key);
-          const t = this.state.updated[fullKey] || {};
-          hasComment = hasComment || (t.comment && t.comment.trim().length > 0);
-          hasValue = hasValue || (t.value && t.value.trim().length > 0);
+          const fullKey = buildFK$(file.locale, key);
+          const t = this.state.origins[fullKey] || {};
+          hasComment = hasComment || (t.comment && t.comment.length > 0);
+          hasValue = hasValue || (t.value && t.value.length > 0);
           file.t = t;
         }
 
@@ -433,11 +459,26 @@ export class Ai18n {
 
         }))
       })
+      .catch(e => {
+
+        const { origins, updates } = this.state;
+
+        // rollback updates
+        const updateKeys = this._updatesFKs$();
+        for (const ufk of updateKeys) {
+          const before = updates.before[ufk];
+          if (before) {
+            origins[ufk] = before;
+          } else {
+            delete origins[ufk];
+          }
+        }
+
+        throw e;
+      })
       .then(() => {
         this._lastTimeUpdated = getTime$();
-        this.state.origins = this.state.updated;
         return this._resetAllUpdates()
-
       })
       .then(() => this._autoExport());
   }
@@ -500,12 +541,12 @@ export class Ai18n {
           return false;
         }
 
-        for (const file of this.state.files) {
+        for (const file of Object.values(this.state.files)) {
 
           const fileData = exporter.begin(file);
           for (const key of this.state.keys.array) {
 
-            const t = this.state.origins[buildFK$(file.name, key)];
+            const t = this.state.origins[buildFK$(file.locale, key)];
             if (t) {
 
               const unsafeT = Object.assign({}, t, {
@@ -539,7 +580,7 @@ export class Ai18n {
 
       this._validateAction$(options);
 
-      if (this.state.updates.length) {
+      if (this.state.updates.keys.size > 0) {
         throw new UnappliedChangesError();
       }
 
@@ -548,12 +589,15 @@ export class Ai18n {
         throw new I18nError(ErrorCodes.InvalidFile, `File name can't be empty`);
       }
 
-      if (this.state.files.some(file => file.name === fileName)) {
-        throw new I18nError(ErrorCodes.InvalidFile, `File with name "${fileName}" already exist`);
+      const file = this._nameToFile$(fileName)
+      if (this.files[fileName] || this.locales.indexOf(file.locale) >= 0) {
+        return true;
       }
 
-      const file = this._nameToFile$(fileName);
-      this.state.files.push(file);
+      const files = Object.values(this.state.files);
+      files.push(file);
+
+      this._setFiles$(files);
       return this.save();
     });
   }
@@ -565,11 +609,11 @@ export class Ai18n {
 
       const { fileName = '' } = options;
 
-      if (this.state.updates.length) {
+      if (this.state.updates.keys.size > 0) {
         throw new UnappliedChangesError();
       }
 
-      const file = this.state.files.filter(f => f.name === fileName);
+      const file = this.state.files[fileName];
       if (!file) {
         return true;
       }
@@ -578,8 +622,9 @@ export class Ai18n {
         .delete(file.path)
         .then(() => this._fs.delete(toBacklog$(file.path)))
         .then(() => {
-          this.state.files = this.state.files.filter(f => f !== file)
-          return this.save();
+          delete this.state.files[fileName];
+          this._setFiles$(Object.values(this.state.files));
+          return true;
         });
     })
   }
@@ -593,12 +638,12 @@ export class Ai18n {
       this._validateKey$(key);
 
       const sortedIndex = this.state.keys.sortedIndexOf(key);
-      if (sortedIndex === -1) {
+      if (sortedIndex >= 0) {
         throw new KeyExistError(key);
       }
 
       this.state.keys.insert(key, sortedIndex);
-      const updates = this.state.files.map(file => this.updateValue({ fileName: file.name, key }));
+      const updates = this.state.locales.map(locale => this.updateTranslation({ locale, key, value: '' }));
       return Promise.all(updates);
     });
   }
@@ -616,20 +661,22 @@ export class Ai18n {
       this._validateKey$(fromKey);
       this._validateKey$(toKey);
 
-      if (this.state.keys.indexOf(fromKey) === -1) {
+
+      if (!this.state.keys.has(fromKey)) {
         throw new KeyNotExistError(fromKey);
       }
 
       const sortedIndex = this.state.keys.sortedIndexOf(toKey);
-      if (sortedIndex === -1) {
+      if (sortedIndex >= 0) {
         throw new KeyExistError(toKey);
       }
 
       this.state.keys.insert(toKey, sortedIndex);
 
-      const updates = this.state.files.map(file => {
-        const fullKey = buildFK$(file.name, fromKey);
-        return this.updateTranslation(Object.assign({ fileName: file.name, key: toKey }, this.state.updated[fullKey]));
+      const updates = this.state.locales.map(locale => {
+        const fullKey = buildFK$(locale, fromKey);
+        const newT = this._copyT$(fullKey, { locale, key: toKey });
+        return this.updateTranslation(newT);
       });
 
       return Promise.all(updates);
@@ -664,59 +711,9 @@ export class Ai18n {
 
       if (this.state.keys.remove(key)) {
 
-        const updates = this.state.files.map(file => this._appendUpdate(file.name, deleteLine$(key)));
+        const updates = this.state.locales.map(locale => this._appendUpdate(locale, deleteLine$(key)));
         return this._optimizeUpdates(updates);
       }
-    });
-  }
-
-  updateValue(options = {}) {
-    return toPromise(() => {
-
-      this._validateAction$(options);
-
-      const { fileName, key, value = '' } = options;
-      this._validateKey$(key);
-
-      const updates = [this._appendUpdate(fileName, valueLine$(false, key, value))];
-      return this._optimizeUpdates(updates);
-    });
-  }
-
-  updateApproved(options = {}) {
-    return toPromise(() => {
-
-      this._validateAction$(options);
-
-      const { fileName, key, approved = false } = options;
-      this._validateKey$(key);
-
-      const fileNames = [];
-      if (fileName) {
-        fileNames.push(fileName);
-      } else {
-        fileNames = this.state.files.map(f => f.name);
-      }
-
-      const updates = fileNames.map(fileName => {
-        const value = this.state.updated[buildFK$(fileName, key)]?.value;
-        return this._appendUpdate(fileName, valueLine$(approved, key, value));
-      })
-
-      return this._optimizeUpdates(updates);
-    });
-  }
-
-  updateComment(options = {}) {
-    return toPromise(() => {
-
-      this._validateAction$(options);
-
-      const { fileName, key, comment } = options;
-      this._validateKey$(key);
-
-      const updates = [this._appendUpdate(fileName, commentLine$(key, comment))];
-      return this._optimizeUpdates(updates);
     });
   }
 
@@ -725,16 +722,29 @@ export class Ai18n {
 
       this._validateAction$(options);
 
-      const { fileName, key, value, comment, approved = false } = options;
+      const { locale, key, value, comment, approved = false } = options;
       this._validateKey$(key);
 
-      const updates = [
-        this._appendUpdate(fileName, commentLine$(key, comment)).then(() => {
-          this._appendUpdate(fileName, valueLine$(approved, key, value))
-        })
-      ];
+      const current = this._copyT$(buildFK$(locale, key));
 
-      return this._optimizeUpdates(updates);
+      const valueCompare = strCompare$(value, current.value) && boolCompare$(approved, current.approved);
+      const commentCompare = strCompare$(comment, current.comment);
+
+      if (valueCompare && commentCompare) {
+        return true;
+      }
+
+      let update = null;
+
+      if (valueCompare && !commentCompare) {
+        update = commentLine$(key, comment);
+      } else if (!valueCompare && commentCompare) {
+        update = valueLine$(approved, key, value);
+      } else {
+        update = commentLine$(key, comment) + '\n' + valueLine$(approved, key, value);
+      }
+
+      return this._optimizeUpdates([this._appendUpdate(locale, update)]);
     });
   }
 
@@ -743,13 +753,13 @@ export class Ai18n {
 
       this._validateAction$(options);
 
-      const { fileName, key } = options;
-      const updateKeys = this._updateKeys$();
+      const { locale, key } = options;
+      const updateKeys = this._updatesFKs$();
       if (updateKeys.size === 0) {
         return;
       }
 
-      if (!fileName && !key) {
+      if (!locale && !key) {
         return this._resetAllUpdates();
       }
 
@@ -757,27 +767,22 @@ export class Ai18n {
 
       for (const fullKey of updateKeys) {
 
-        const [fileNameFK, keyFK] = splitFK$(fullKey);
+        const [localeFK, keyFK] = splitFK$(fullKey);
 
-        const sameFileName = fileName === fileNameFK;
+        const sameFileName = locale === localeFK;
         const sameKey = key === keyFK;
 
         if (
-          (fileName && key && (!sameFileName || !sameKey)) ||
-          (fileName && !key && !sameFileName) ||
-          (!fileName && key && !sameKey)
+          (locale && key && (!sameFileName || !sameKey)) ||
+          (locale && !key && !sameFileName) ||
+          (!locale && key && !sameKey)
         ) {
           return;
         }
 
-        const origins = this.state.origins[fullKey];
-        if (origins) {
-          updates.push(this._appendUpdate(fileNameFK, commentLine$(keyFK, origins.comment)));
-          updates.push(this._appendUpdate(fileNameFK, valueLine$(origins.approved, keyFK, origins.comment)));
-        } else {
-          updates.push(this._appendUpdate(fileNameFK, deleteLine$(keyFK)));
-        }
-
+        const t = this.state.origins[fullKey];
+        const update = t ? commentLine$(keyFK, t.comment) + '\n' + valueLine$(t.approved, keyFK, t.comment) : deleteLine$(keyFK);
+        updates.push(this._appendUpdate(localeFK, update));
       };
 
       return this._optimizeUpdates(updates);

@@ -5,4 +5,9 @@
 
 ## TODO
 
-- editable div
+- search keys
+
+- select key
+  - new, deleted, updated key mark
+
+- modal for edit

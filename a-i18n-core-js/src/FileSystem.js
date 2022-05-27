@@ -96,12 +96,12 @@ export class FileSystem {
 
   writeFile (path, data = '', options = { encoding : Encoding }) { return this._fs.writeFile(this._resolvePath$(path), data, options); }
 
-  appendLine (path, line, options = { encoding : Encoding }) {
+  appendContent (path, content, options = { encoding : Encoding }) {
     return this.readFile(path, options)
-      .then(content => {
-        const prefix = (content.length === 0 || content[content.length - 1] === '\n') ? '' : '\n';
-        const suffix = line[line.length - 1] === '\n' ? '' : '\n';
-        this.writeFile(path, content + prefix + line + suffix, options);
+      .then(contentNow => {
+        const prefix = (contentNow.length === 0 || contentNow[contentNow.length - 1] === '\n') ? '' : '\n';
+        const suffix = content[content.length - 1] === '\n' ? '' : '\n';
+        this.writeFile(path, contentNow + prefix + content + suffix, options);
       });
   }
 

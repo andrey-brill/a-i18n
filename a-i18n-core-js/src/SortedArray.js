@@ -1,4 +1,31 @@
 
+// NB! Don't touch
+// if returns -i then (i-1) is index where value should be placed
+// if returns i then i is index of the value
+function binarySortedIndex (array, value) {
+
+  let start = 0, end = array.length - 1;
+
+  while (start <= end){
+
+      let mid = Math.floor((start + end)/2);
+
+      if (array[mid] < value) {
+        start = mid + 1;
+        lastStart = true;
+      } else if (array[mid] > value) {
+        end = mid - 1;
+        lastStart = false;
+      } else if (array[mid] === value) {
+        return mid;
+      }
+  }
+
+  return - (1 + Math.max(start, end));
+}
+
+
+
 export class SortedArray {
 
   constructor() {
@@ -14,22 +41,22 @@ export class SortedArray {
     this.changed = true;
   }
 
-  insert(element, sortedIndex) {
+  insert(value, sortedIndex) {
 
     if (sortedIndex === undefined) {
-      sortedIndex = this.sortedIndexOf(element);
+      sortedIndex = this.sortedIndexOf(value);
     }
 
-    if (sortedIndex >= 0) {
-      this.array.splice(sortedIndex, 0, element);
+    if (sortedIndex < 0) {
+      this.array.splice( -(sortedIndex + 1), 0, value);
       this.changed = true;
     }
   }
 
   remove(value) {
 
-    const index = this.array.indexOf(value);
-    if (index > -1) {
+    const index = this.sortedIndexOf(value);
+    if (index >= 0) {
       this.array.splice(index, 1);
       return this.changed = true;
     }
@@ -38,24 +65,11 @@ export class SortedArray {
   }
 
   sortedIndexOf(value) {
-
-    // TODO rewrite with binary search
-    for (let i = 0; i < this._array.length; i++) {
-
-      const el = this._array[i];
-
-      if (el < value) {
-        continue;
-      } else {
-        return value === el ? -1 : i;
-      }
-    }
-
-
-    return this.array.length;
+    return binarySortedIndex(this.array, value);
   }
 
-  indexOf(value) {
-    return this.array.indexOf(value);
+  has(value) {
+    return this.sortedIndexOf(value) >= 0;
   }
+
 }

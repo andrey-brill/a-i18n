@@ -7,7 +7,7 @@ import { buildFK$ } from './i18n/I18n.js';
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
 import logo from '../svg/logo.svg';
-import { MessageTypes } from '../../core/constants.js';
+import { KeyState, MessageTypes } from '../../core/constants.js';
 
 
 
@@ -17,6 +17,125 @@ const DefaultUI = {
 };
 
 const KeysLimit = 50;
+
+
+function buildUpdate(previousUpdate = {}, state, ui, i18n) {
+
+  const { keys, files, updated, origins, updates } = state;
+
+  const update = Object.assign({ type: MessageTypes.Update }, ui);
+  update.loaded = state.loaded;
+
+  if (!update.loaded) {
+    return update;
+  }
+
+  update.error = state.error;
+
+  if (update.error) {
+    return update;
+  }
+
+  //
+  // update.updates = state.updates;
+
+  const updateKeys = i18n._updatesFKs$();
+
+  // resolve updated keys states
+  const updatedKeys = {};
+  for (const updatedKey of updateKeys) {
+
+    const before = updates.before[updatedKey];
+    const after = updates.after[updatedKey];
+
+  }
+
+  update.updatedKeys = updatedKeys;
+
+  if (update.selectedKey) {
+
+    if (!i18n.state.keys.has(update.selectedKey)) {
+      update.selectedState = KeyState.Deleted
+    } else {
+
+      const selectedValue = {};
+      const selectedOrigin = {};
+
+
+      let hasOrigins = false;
+      let hasUpdates = false;
+
+      for (const file of files) {
+
+        const fullKey = buildFK$(file.name, update.selectedKey);
+
+        selectedValue[file.locale] = updated[fullKey];
+        selectedOrigin[file.locale] = origins[fullKey];
+
+        if (origins[fullKey]) {
+          hasOrigins = true;
+        }
+
+        if (updateKeys.has(fullKey)) {
+          hasUpdates = true;
+        }
+
+      }
+
+      update.selectedState = !hasOrigins ? KeyState.New : (hasUpdates ? KeyState.Updated : KeyState.Original);
+      update.selectedOrigin = hasOrigins ? selectedOrigin : null;
+      update.selectedValue = selectedValue;
+
+    }
+  }
+
+  const query = update.query.trim();
+  if (previousUpdate.query !== query || keys.changed) {
+
+    const keysInfo = {};
+    let keysInfoSize = 0;
+    for (const key of keys.array) {
+
+      if (key.indexOf(query) >= 0) {
+
+        keysInfoSize++;
+        keysInfo[key] = true;
+
+        if (keysInfoSize >= KeysLimit) {
+          break;
+        }
+      }
+    }
+
+    update.keysInfo = keysInfo;
+    update.keysInfoReachLimit = keysInfoSize === KeysLimit;
+  }
+
+
+  if (update.keysInfo) {
+
+    for (const key of Object.keys(update.keysInfo)) {
+
+      const info = {
+        approved: 0,
+        filled: 0
+      };
+
+      for (const file of files) {
+        const fullKey = buildFK$(file.name, key);
+        const t = updated[fullKey];
+        if (t && t.approved) info.approved++;
+        if (t && t.value && t.value.length > 0) info.filled++;
+      }
+
+      info.approved = info.approved / files.length;
+      info.filled = info.filled / files.length;
+
+      update.keysInfo[key] = info;
+    }
+  }
+
+}
 
 export class I18nManager extends Disposable {
 
@@ -95,70 +214,9 @@ export class I18nManager extends Disposable {
 
   updatePanel$() {
     if (this.state && this.panel) {
-
-      const { keys, files, updated } = this.state;
-
-      const prepared = Object.assign({ type: MessageTypes.Update }, this.ui);
-      prepared.loaded = this.state.loaded;
-      prepared.error = this.state.error;
-      prepared.updates = this.state.updates;
-
-      if (prepared.selectedKey) {
-
-        const selectedValue = {};
-        for (const file of files) {
-          const fullKey = buildFK$(file.name, prepared.selectedKey);
-          selectedValue[file.locale] = updated[fullKey];
-        }
-
-        prepared.selectedValue = selectedValue;
-      }
-
-      const query = prepared.query.trim();
-      if (this.previousPrepared.query !== query || keys.changed) {
-
-        const keysInfo = {};
-        let keysInfoSize = 0;
-        for (const key of keys.array) {
-
-          if (key.indexOf(query) >= 0) {
-
-            keysInfoSize++;
-
-            keysInfo[key] = {
-              approved: 0,
-              filled: 0
-            };
-
-            if (keysInfoSize >= KeysLimit) {
-              break;
-            }
-          }
-        }
-
-        prepared.keysInfo = keysInfo;
-        prepared.keysInfoReachLimit = keysInfoSize === KeysLimit;
-      }
-
-      // calculating keysInfo
-      for (const key of Object.keys(prepared.keysInfo)) {
-
-        const info = prepared.keysInfo[key];
-
-        for (const file of files) {
-          const fullKey = buildFK$(file.name, key);
-          const t = updated[fullKey];
-          if (t && t.approved) info.approved++;
-          if (t && t.value && t.value.trim().length > 0) info.filled++;
-        }
-
-        info.approved = info.approved / files.length;
-        info.filled = info.filled / files.length;
-      }
-
-      this.previousPrepared = prepared;
-
-      this.postMessage$(prepared);
+      const nextUpdate = buildUpdate(this.previousUpdate, this.state, this.ui, this.i18n);
+      this.postMessage$(nextUpdate);
+      this.previousUpdate = nextUpdate;
     }
   }
 
@@ -203,7 +261,7 @@ export class I18nManager extends Disposable {
 
   resetPanel$() {
     this.panel = null;
-    this.previousPrepared = {};
+    this.previousUpdate = {};
     this.ui = Object.assign({}, DefaultUI);
   }
 }

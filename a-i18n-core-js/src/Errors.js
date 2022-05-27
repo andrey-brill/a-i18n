@@ -16,7 +16,7 @@ export const ErrorCodes = {
   InvalidFile: 'InvalidFile',
   InvalidKey: 'InvalidKey',
   InvalidOptions: 'InvalidOptions',
-  NoI18nFiles: 'NoI18nFiles',
+  NotUniqueI18nFiles: 'NotUniqueI18nFiles',
   NoI18nJsFiles: 'NoI18nJsFiles',
   Export: 'Export'
 };
@@ -82,9 +82,9 @@ export class KeyExistError extends I18nError {
   }
 }
 
-export class NoI18nFilesError extends I18nError {
+export class NotUniqueI18nFilesError extends I18nError {
   constructor() {
-    super(ErrorCodes.NoI18nFiles, `I18n files not found to process current action.`)
+    super(ErrorCodes.NotUniqueI18nFiles, `I18n files contains duplicated locales.`)
   }
 }
 
@@ -110,12 +110,5 @@ export class InvalidPathError extends I18nError {
 export class InvalidKeyError extends I18nError {
   constructor(key) {
     super(ErrorCodes.InvalidKey, `Key is invalid "${key}" (empty or contains ${KeyValueSeparator}).`);
-  }
-}
-
-
-export class ExportError extends I18nError {
-  constructor(error) {
-    super(ErrorCodes.Export, error.message);
   }
 }

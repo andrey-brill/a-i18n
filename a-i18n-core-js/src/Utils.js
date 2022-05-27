@@ -45,9 +45,15 @@ export const valueLine$ = (approved, key, value) => (approved ? ApprovedLine : N
 export const deleteLine$ = (key) => DeleteKeyLine + key;
 
 
-export const buildFK$ = (fileName, key) => fileName + FullKeySeparator + key;
+export const buildFK$ = (locale, key) => locale + FullKeySeparator + key;
 export const splitFK$ = (fullKey) => fullKey.split(FullKeySeparator);
 
+export const strCompare$ = (a, b) => (a || '') === (b || '');
+export const boolCompare$ = (a, b) => (!!a) === (!!b);
+
+export const tCompare$ = (a, b) => a && b && strCompare$(a.value, b.value) && boolCompare$(a.approved, b.approved) && strCompare$(a.comment, b.comment);
+
+export const hasComment$ = (t) => t && t.comment && t.comment.length > 0;
 
 export const endWithSlash$ = (path) => {
   if (!path || path.length === 0) {

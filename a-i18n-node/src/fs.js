@@ -20,7 +20,7 @@ const exists = (path, fileType) => new Promise((resolve, reject) => {
 
 export const FS = {
 
-  rootPath$: (rootPath = RootDirectory) => resolve(rootPath),
+  rootPath$: (rootPath) => resolve(rootPath || RootDirectory),
   delete: (path) => fs.rm(path, { recursive: true, force: true }), // ignore not existing error
 
   readFile: (path, options) => fs.readFile(path, options).then(buffer => buffer.toString(options.encoding)),
