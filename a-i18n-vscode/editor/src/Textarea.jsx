@@ -20,7 +20,6 @@ export const Textarea = ({ initialValue = '', setValue }) => {
       },
 
       onResize: () => {
-        console.log('onResize', ref.current.scrollHeight);
         ref.current.style.height = "auto";
         ref.current.style.height = ref.current.scrollHeight + "px";
       },
@@ -43,8 +42,7 @@ export const Textarea = ({ initialValue = '', setValue }) => {
 
     state.current.onResize();
 
-    const observer = new MutationObserver((mutations) => {
-      console.log('mutations', mutations);
+    const observer = new MutationObserver(() => {
       state.current.onResize();
     });
 

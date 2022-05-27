@@ -101,31 +101,18 @@ export class Ai18n {
     };
   }
 
-  _cloneState$() {
-    return Object.assign({},
-      this.state,
-      {
-        locales: [...this.state.locales],
-        keys: {
-          array: this.state.keys.array,
-          changed: this.state.keys.changed
-        }
-      }
-    );
-  }
-
   _triggerChange$() {
 
     try {
       if (this._onChange$) {
-        this._onChange$(this._cloneState$());
+        this._onChange$();
       }
     }
     catch (e) {
       this._config.errorHandler(e);
     }
     finally {
-      this.state.keys.updated = false;
+      this.state.keys.changed = false;
     }
   }
 
@@ -196,9 +183,12 @@ export class Ai18n {
 
   }
 
+  getT$(fullKey) {
+    return this.state.updates.fullKeys.has(fullKey) ? this.state.updates.after[fullKey] : this.state.origins[fullKey];
+  }
+
   _copyT$(fullKey, newT) {
-    const hasUpdate = !!(this.state.updates.before[fullKey] || this.state.updates.after[fullKey]);
-    return Object.assign({}, hasUpdate ? this.state.updates.after[fullKey] : this.state.origins[fullKey], newT);
+    return Object.assign({}, this.getT$(fullKey), newT);
   }
 
   _resetAllUpdates() {
@@ -725,7 +715,7 @@ export class Ai18n {
       const { locale, key, value, comment, approved = false } = options;
       this._validateKey$(key);
 
-      const current = this._copyT$(buildFK$(locale, key));
+      const current = this.getT$(buildFK$(locale, key)) || {};
 
       const valueCompare = strCompare$(value, current.value) && boolCompare$(approved, current.approved);
       const commentCompare = strCompare$(comment, current.comment);

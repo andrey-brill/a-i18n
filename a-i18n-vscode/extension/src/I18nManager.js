@@ -18,78 +18,86 @@ const DefaultUI = {
 
 const KeysLimit = 50;
 
+function resolveKeyState (key, locales, keys, updates) {
 
-function buildUpdate(previousUpdate = {}, state, ui, i18n) {
-
-  const { keys, files, updated, origins, updates } = state;
-
-  const update = Object.assign({ type: MessageTypes.Update }, ui);
-  update.loaded = state.loaded;
-
-  if (!update.loaded) {
-    return update;
+  if (!updates.keys.has(key)) {
+    return keys.has(key) ? KeyState.Original : KeyState.Deleted;
   }
 
-  update.error = state.error;
+  const states = [];
+  for (const locale of locales) {
 
-  if (update.error) {
-    return update;
-  }
+    const fk = buildFK$(locale, key);
+    const before = updates.before[fk];
+    const after = updates.after[fk];
 
-  //
-  // update.updates = state.updates;
-
-  const updateKeys = i18n._updatesFKs$();
-
-  // resolve updated keys states
-  const updatedKeys = {};
-  for (const updatedKey of updateKeys) {
-
-    const before = updates.before[updatedKey];
-    const after = updates.after[updatedKey];
-
-  }
-
-  update.updatedKeys = updatedKeys;
-
-  if (update.selectedKey) {
-
-    if (!i18n.state.keys.has(update.selectedKey)) {
-      update.selectedState = KeyState.Deleted
+    if (before && !after) {
+      states.push(KeyState.Deleted);
+    } else if (after && !before) {
+      states.push(KeyState.New);
     } else {
-
-      const selectedValue = {};
-      const selectedOrigin = {};
-
-
-      let hasOrigins = false;
-      let hasUpdates = false;
-
-      for (const file of files) {
-
-        const fullKey = buildFK$(file.name, update.selectedKey);
-
-        selectedValue[file.locale] = updated[fullKey];
-        selectedOrigin[file.locale] = origins[fullKey];
-
-        if (origins[fullKey]) {
-          hasOrigins = true;
-        }
-
-        if (updateKeys.has(fullKey)) {
-          hasUpdates = true;
-        }
-
-      }
-
-      update.selectedState = !hasOrigins ? KeyState.New : (hasUpdates ? KeyState.Updated : KeyState.Original);
-      update.selectedOrigin = hasOrigins ? selectedOrigin : null;
-      update.selectedValue = selectedValue;
-
+      return KeyState.Updated;
     }
   }
 
-  const query = update.query.trim();
+  return states[0];
+}
+
+
+function buildUpdate(previousUpdate = {}, ui, i18n) {
+
+  const { keys, origins, locales, updates, loaded, error } = i18n.state;
+
+  const update = Object.assign({ type: MessageTypes.Update, loaded, error });
+
+  if (!update.loaded || update.error) {
+    return update;
+  }
+
+  const updatedKeys = {};
+  for (const key of updates.keys) {
+    updatedKeys[key] = resolveKeyState(key, locales, keys, updates);
+  }
+  update.updatedKeys = updatedKeys;
+
+  const { selectedKey, query } = ui;
+
+  if (selectedKey) {
+
+    update.selectedKey = selectedKey;
+    update.selectedState = resolveKeyState(selectedKey, locales, keys, updates);
+
+    let previous = null;
+    let current = null;
+
+    switch (update.selectedState) {
+      case KeyState.Original:
+        current = origins;
+        break;
+      case KeyState.New:
+        current = updates.after;
+        break;
+      case KeyState.Updated:
+        previous = updates.before;
+        current = updates.after;
+        break;
+    }
+
+    const selectedPrevious = {};
+    const selectedCurrent = {};
+
+    for (const locale of locales) {
+
+      const fk = buildFK$(locale, selectedKey);
+      selectedPrevious[locale] = previous ? previous[fk] : null;
+      selectedCurrent[locale] = current ? current[fk] : null;
+    }
+
+    update.selectedCurrent = selectedCurrent;
+    update.selectedPrevious = selectedPrevious;
+
+  }
+
   if (previousUpdate.query !== query || keys.changed) {
 
     const keysInfo = {};
@@ -107,8 +115,9 @@ function buildUpdate(previousUpdate = {}, state, ui, i18n) {
       }
     }
 
-    update.keysInfo = keysInfo;
     update.keysInfoReachLimit = keysInfoSize === KeysLimit;
+    update.keysInfo = keysInfo;
+    update.query = query;
   }
 
 
@@ -121,20 +130,20 @@ function buildUpdate(previousUpdate = {}, state, ui, i18n) {
         filled: 0
       };
 
-      for (const file of files) {
-        const fullKey = buildFK$(file.name, key);
-        const t = updated[fullKey];
+      for (const locale of locales) {
+        const t = i18n.getT$(buildFK$(locale, key));
         if (t && t.approved) info.approved++;
         if (t && t.value && t.value.length > 0) info.filled++;
       }
 
-      info.approved = info.approved / files.length;
-      info.filled = info.filled / files.length;
+      info.approved = info.approved / locales.length;
+      info.filled = info.filled / locales.length;
 
       update.keysInfo[key] = info;
     }
   }
 
+  return update;
 }
 
 export class I18nManager extends Disposable {
@@ -213,14 +222,19 @@ export class I18nManager extends Disposable {
   }
 
   updatePanel$() {
-    if (this.state && this.panel) {
-      const nextUpdate = buildUpdate(this.previousUpdate, this.state, this.ui, this.i18n);
+    if (this.i18n && this.panel) {
+      const nextUpdate = buildUpdate(this.previousUpdate, this.ui, this.i18n);
       this.postMessage$(nextUpdate);
       this.previousUpdate = nextUpdate;
     }
   }
 
   postMessage$(message) {
+
+    if (!message) {
+      throw new Error('postMessage$.message is undefined!')
+    }
+
     if (this.panel) {
       // postMessage works in single tread, thus it wait while React is rendering
       console.log('postMessage', message.type, message);
@@ -236,15 +250,7 @@ export class I18nManager extends Disposable {
       throw new Error('WTF?');
     }
 
-    const options = {
-      onChange: (state) => {
-        console.log('onChange', !!state);
-        this.state = state;
-        this.updatePanel$();
-      }
-    };
-
-    return this.i18n.connect(options)
+    return this.i18n.connect({ onChange: () => this.updatePanel$() })
       .then(unsubscribe => {
         if (unsubscribe) { // can be undefined on catch error
           this.dis$(unsubscribe);
@@ -255,7 +261,6 @@ export class I18nManager extends Disposable {
 
   dispose() {
     super.dispose();
-    this.state = null;
     this.resetPanel$();
   }
 
