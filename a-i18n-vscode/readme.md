@@ -10,4 +10,6 @@
 - select key
   - new, deleted, updated key mark
 
+- locale order preference
+
 - modal for edit

@@ -1,0 +1,38 @@
+
+.g-panel-keys {
+
+  > .lpk-bar {
+    display: flex;
+    flex-direction: row;
+    padding-left: var(--p-lg);
+    padding-right: var(--p-lg);
+
+    > .lpk-query, .lpk-create {
+
+      height: var(--input-h);
+      line-height: var(--input-h);
+      background: var(--input-background);
+      color: var(--input-foreground);
+
+      border: var(--border-radius) solid var(--color-border);
+      box-sizing: border-box;
+      padding: 0 var(--p-md);
+      outline: none !important;
+
+      &:focus, &:active {
+        border-color: var(--color-border-focus);
+      }
+    }
+
+    > .lpk-query {
+      border-radius: var(--border-radius) 0 0 var(--border-radius);
+      flex-basis: 100%;
+    }
+
+    > .lpk-create {
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      border-left: var(--border-radius) solid var(--color-background);
+    }
+  }
+
+}

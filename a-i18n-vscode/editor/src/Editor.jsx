@@ -25,10 +25,7 @@ export const Editor = () => {
     }
 
     if (message.type === MessageTypes.Update) {
-      setState({
-        loaded: message.loaded,
-        error: message.error
-      });
+      setState(message);
     }
   });
 

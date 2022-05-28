@@ -8,7 +8,7 @@ export const EditorPanels = {
   },
   column: {
     key: Extension + ':column-panels-size',
-    value: [50, 50]
+    value: [60, 40]
   }
 };
 

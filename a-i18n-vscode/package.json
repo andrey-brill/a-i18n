@@ -18,7 +18,8 @@
     }
   },
   "scripts": {
-    "editor-watch": "cd ./editor && npm run watch",
+    "editor-clean-cache": "npx rimraf editor/.parcel-cache",
+    "editor-watch": "npm run editor-clean-cache && cd ./editor && npm run watch",
     "editor-prepublish": "cd ./editor && npm run prepublish && cd ..",
     "build": "webpack --mode development",
     "vscode:prepublish": "npm run editor-prepublish && webpack --mode production"

@@ -10,6 +10,11 @@
 @import './src/Translations.scss';
 @import './src/utils/ResizablePlanes.scss';
 @import './src/Textarea.scss';
+@import './src/PanelTranslations.scss';
+@import './src/KeysList.scss';
+@import './src/PanelKeys.scss';
+
+
 
 @function px-to-rem($size) {
   @return #{$size * 0.0769}rem;
@@ -57,6 +62,11 @@
 
   --border-width: 1px;
   --border-radius: 2px;
+
+  --input-background: var(--vscode-input-background);
+  --input-foreground: var(--vscode-input-foreground);
+  --input-placeholder: var(--vscode-input-placeholderForeground);
+
 }
 
 html, body, #root {
