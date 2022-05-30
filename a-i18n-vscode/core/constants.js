@@ -12,13 +12,40 @@ export const EditorPanels = {
   }
 };
 
+export const ActionProperty = 'action';
 
-export const MessageTypes = {
+export const Action = {
+
   Ready: 'Ready',
   Init: 'Init',
   Update: 'Update',
-  UpdateWorkspaceState: 'UpdateWorkspaceState'
-}
+
+  Query: 'Query',
+  SelectKey: 'SelectKey',
+  UpdateWorkspaceState: 'UpdateWorkspaceState',
+
+  AddKey: 'AddKey',
+  CopyKey: 'CopyKey',
+  RenameKey: 'RenameKey',
+  DeleteKey: 'DeleteKey',
+
+  RevertUpdate: 'RevertUpdate',
+  RevertUpdates: 'RevertUpdates',
+
+  AddComment: 'AddComment',
+  RemoveComment: 'RemoveComment',
+
+  Approve: 'Approve',
+  Disapprove: 'Disapprove',
+
+  ActivateAutoExport: 'ActivateAutoExport',
+  DeactivateAutoExport: 'DeactivateAutoExport',
+
+  PinLocales: 'PinLocales',
+
+  ReportBug: 'ReportBug',
+  GoToRepository: 'GoToRepository'
+};
 
 export const KeyState = {
   New: 'New',

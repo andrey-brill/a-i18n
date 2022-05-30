@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { simpleDebounce$ } from '../../../../a-i18n-core-js/index.js';
-import { MessageTypes } from '../../../core/constants.js';
+import { Action } from '../../../core/constants.js';
 
 import { VsCode } from './VsCode.js';
 
@@ -27,8 +27,7 @@ export class ResizablePanels extends Component {
     this.saveSize = simpleDebounce$(() => {
 
       if (this.state.panelsSize && this.props.stateKey) {
-        VsCode.postMessage({
-          type: MessageTypes.UpdateWorkspaceState,
+        VsCode.post(Action.UpdateWorkspaceState, {
           [this.props.stateKey]: this.state.panelsSize
         });
       }

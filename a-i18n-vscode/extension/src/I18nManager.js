@@ -7,7 +7,7 @@ import { buildFK$ } from './i18n/I18n.js';
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
 import logo from '../svg/logo.svg';
-import { KeyState, MessageTypes } from '../../core/constants.js';
+import { KeyState, Action, ActionProperty } from '../../core/constants.js';
 
 
 
@@ -48,7 +48,7 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
   const { keys, origins, locales, updates, loaded, error } = i18n.state;
 
-  const update = Object.assign({ type: MessageTypes.Update, loaded, error });
+  const update = Object.assign({ [ActionProperty]: Action.Update, loaded, error });
 
   if (!update.loaded || update.error) {
     return update;
@@ -159,7 +159,7 @@ export class I18nManager extends Disposable {
 
   _buildInit$() {
 
-    const message = { type: MessageTypes.Init, workspaceState: {} };
+    const message = { [ActionProperty]: Action.Init, workspaceState: {} };
 
     for (const key of this.context.workspaceState.keys()) {
       message.workspaceState[key] = this.context.workspaceState.get(key);
@@ -192,27 +192,55 @@ export class I18nManager extends Disposable {
     panel.webview.html = templateParts.shift() + script + templateParts.shift(); // replace() not working sometimes
 
     this.dis$(panel.onDidDispose(() => {
-      this.resetPanel$();
+      this._resetPanel$();
     }));
 
     this.dis$(panel.webview.onDidReceiveMessage((message) => {
-      console.log('panel.webview', message);
-
-      if (message.type === MessageTypes.Ready) {
-        this.postMessage$(this._buildInit$())
-        this.updatePanel$();
-      }
-
-      if (message.type === MessageTypes.UpdateWorkspaceState) {
-        for (const key of Object.keys(message)) {
-          if (key !== 'type') {
-            this.context.workspaceState.update(key, message[key]);
-          }
-        }
-      }
+      console.log('I18nManager.handlePanelMessage', message);
+      this._handleAction$(message[ActionProperty], message);
     }));
 
     this.panel = panel;
+  }
+
+  _handleAction$(action, data) {
+
+    switch(action) {
+
+      case Action.Ready:
+        this._postMessage$(this._buildInit$())
+        this._updatePanel$();
+        return;
+
+      case Action.Query:
+        this.ui.query = data.query;
+        this._updatePanel$();
+        return;
+
+      case Action.SelectKey:
+        this.ui.selectedKey = data.key;
+        this._updatePanel$();
+        return;
+
+      case Action.AddKey:
+        this.i18n
+          .addKey({ key: data.key })
+          .then(() => {
+            this.ui.selectedKey = data.key;
+            this._updatePanel$();
+          });
+        return;
+
+      case Action.UpdateWorkspaceState:
+
+        for (const key of Object.keys(data)) {
+          if (key !== ActionProperty) {
+            this.context.workspaceState.update(key, data[key]);
+          }
+        }
+
+        return;
+    }
   }
 
   setTitle$(title) {
@@ -221,23 +249,23 @@ export class I18nManager extends Disposable {
     }
   }
 
-  updatePanel$() {
+  _updatePanel$() {
     if (this.i18n && this.panel) {
       const nextUpdate = buildUpdate(this.previousUpdate, this.ui, this.i18n);
-      this.postMessage$(nextUpdate);
+      this._postMessage$(nextUpdate);
       this.previousUpdate = nextUpdate;
     }
   }
 
-  postMessage$(message) {
+  _postMessage$(message) {
 
     if (!message) {
-      throw new Error('postMessage$.message is undefined!')
+      throw new Error('_postMessage$.message is undefined!')
     }
 
     if (this.panel) {
       // postMessage works in single tread, thus it wait while React is rendering
-      console.log('postMessage', message.type, message);
+      console.log('I18nManager._postMessage$', message[ActionProperty], message);
       this.panel.webview.postMessage(message);
     } else {
       console.error("Can't post message", message);
@@ -250,7 +278,7 @@ export class I18nManager extends Disposable {
       throw new Error('WTF?');
     }
 
-    return this.i18n.connect({ onChange: () => this.updatePanel$() })
+    return this.i18n.connect({ onChange: () => this._updatePanel$() })
       .then(unsubscribe => {
         if (unsubscribe) { // can be undefined on catch error
           this.dis$(unsubscribe);
@@ -261,10 +289,10 @@ export class I18nManager extends Disposable {
 
   dispose() {
     super.dispose();
-    this.resetPanel$();
+    this._resetPanel$();
   }
 
-  resetPanel$() {
+  _resetPanel$() {
     this.panel = null;
     this.previousUpdate = {};
     this.ui = Object.assign({}, DefaultUI);

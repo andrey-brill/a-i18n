@@ -1,5 +1,5 @@
 
-.g-action {
+a.g-action {
 
   color: var(--vscode-editor-foreground) !important;
   text-decoration: none;
@@ -13,5 +13,15 @@
     opacity: 0.3;
     user-select: none;
     pointer-events: none;
+  }
+}
+
+.g-action {
+
+  display: flex;
+  align-items: center;
+
+  > .g-icon + span {
+    margin-left: var(--p-sm);
   }
 }

@@ -2,10 +2,9 @@
 import React, { useEffect, useState } from 'react';
 
 import { Context, State } from './Contexts.jsx';
-import { MessageTypes } from '../../core/constants.js';
+import { Action } from '../../core/constants.js';
 import { Panels } from './Panels';
-import useMessage from './utils/useMessage.js';
-import { VsCode } from './utils/VsCode.js';
+import { useMessage, VsCode } from './utils/VsCode.js';
 import { IconLoad } from './Icons.jsx';
 
 
@@ -14,23 +13,23 @@ export const Editor = () => {
   const [context, setContext] = useState(null);
   const [state, setState] = useState({});
 
-  useMessage(message => {
+  useMessage((action, data) => {
 
-    console.log(message.type, message);
+    console.log(action, data);
 
-    if (message.type === MessageTypes.Init) {
+    if (action === Action.Init) {
       setContext({
-        workspaceState: message.workspaceState || {}
+        workspaceState: data.workspaceState || {}
       });
     }
 
-    if (message.type === MessageTypes.Update) {
-      setState(message);
+    if (action === Action.Update) {
+      setState(data);
     }
   });
 
   useEffect(() => {
-    VsCode.postMessage({ type: MessageTypes.Ready });
+    VsCode.post(Action.Ready);
   }, []);
 
   if (context && state) {

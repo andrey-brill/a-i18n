@@ -27,11 +27,14 @@
     > .lpk-query {
       border-radius: var(--border-radius) 0 0 var(--border-radius);
       flex-basis: 100%;
+
+      &::after {
+        border-left: var(--border-radius) solid var(--color-background);
+      }
     }
 
     > .lpk-create {
       border-radius: 0 var(--border-radius) var(--border-radius) 0;
-      border-left: var(--border-radius) solid var(--color-background);
     }
   }
 

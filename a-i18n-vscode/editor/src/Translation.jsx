@@ -1,12 +1,13 @@
 
 import React, { useRef, useState } from 'react';
 
-import { A, ActionLink, onAction } from './Actions.jsx';
+import { ActionLink, onAction } from './Actions.jsx';
 import { IconApprove, IconCheckOff, IconComment, IconDiff } from './Icons.jsx';
 import { diffWords } from './utils/Diff.js';
 import { Space } from './Space.jsx';
 import { Textarea } from './Textarea.jsx';
 import { hasComment$, tCompare$ } from '../../../a-i18n-core-js/index.js';
+import { Action } from '../../core/constants.js';
 
 
 const Topper = ({ children }) => (
@@ -79,19 +80,19 @@ export const Translation = ({ locale, current, previous, onChange }) => {
 
         switch(action) {
 
-          case A.approve:
+          case Action.Approve:
             updateT({ approved: true });
             break;
 
-          case A.disapprove:
+          case Action.Disapprove:
             updateT({ approved: false });
             break;
 
-          case A.addComment:
+          case Action.AddComment:
             setShowComment(true);
             break;
 
-          case A.removeComment:
+          case Action.RemoveComment:
 
             setShowComment(false);
 
@@ -101,7 +102,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
 
             break;
 
-          case A.revertUpdate:
+          case Action.RevertUpdate:
 
             if (previous) {
               setForceUpdate(Math.round(Math.random() * 10000));
@@ -130,9 +131,9 @@ export const Translation = ({ locale, current, previous, onChange }) => {
       <div className='lt-grow'/>
       <Topper>
         <Space.div className='lt-actions' x={5} onClick={updater.current.onAction}>
-            <ActionLink a={ t.approved ? A.disapprove : A.approve } />
-            <ActionLink a={ showComment ? A.removeComment : A.addComment } />
-            <ActionLink a={A.revertUpdate} disabled={!changed} />
+            <ActionLink a={ t.approved ? Action.Disapprove : Action.Approve } />
+            <ActionLink a={ showComment ? Action.RemoveComment : Action.AddComment } />
+            <ActionLink a={Action.RevertUpdate} disabled={!changed} />
         </Space.div>
       </Topper>
     </div>

@@ -27,5 +27,9 @@ export const Space = {
   a: (props = {}) => {
     const { children, className } = insertSpacesChildren(props);
     return <a id={props.id} href='' onClick={props.onClick} title={props.title} className={className}>{children}</a>
+  },
+  span: (props = {}) => {
+    const { children, className } = insertSpacesChildren(props);
+    return <span className={className}>{children}</span>
   }
 };

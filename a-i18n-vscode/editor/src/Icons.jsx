@@ -3,7 +3,7 @@ import React from 'react';
 
 
 const SvgHeight = 80;
-const OffsetY = 5; // Making icons on the same line as text
+const OffsetY = 4; // Making icons on the same line as text
 
 const Icon = ({  className = '', style, width = SvgHeight, offsetY = OffsetY, height = SvgHeight, children }) => {
   return (

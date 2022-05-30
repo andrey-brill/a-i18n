@@ -1,8 +1,7 @@
 
 import React, { useContext } from 'react';
-import { EditorPanels, MessageTypes } from '../../core/constants.js';
 
-import { A } from './Actions.jsx';
+import { Action, EditorPanels } from '../../core/constants.js';
 import { Context } from './Contexts.jsx';
 import { Dropdown } from './Dropdown.jsx';
 import { PanelKeys } from './PanelKeys.jsx';
@@ -24,7 +23,7 @@ export const Panels = () => {
         <PanelKeys className="lp-right-top"/>
         <div className="lp-right-bottom">
           <div>
-            <Dropdown title="Changes" as={[A.revertUpdates]}/>
+            <Dropdown title="Changes" actions={[Action.RevertUpdates]}/>
           </div>
           <div>Save</div>
         </div>

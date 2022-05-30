@@ -4,3 +4,8 @@
   align-items: center;
   user-select: none;
 }
+
+span.g-space {
+  display: inline-flex;
+  white-space: nowrap;
+}

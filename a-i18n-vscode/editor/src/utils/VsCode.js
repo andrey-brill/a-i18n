@@ -1,4 +1,7 @@
 
+import { useEffect } from 'react';
+
+import { ActionProperty } from '../../../core/constants.js';
 
 
 class VsCodeApi {
@@ -7,9 +10,10 @@ class VsCodeApi {
     this.vscode = acquireVsCodeApi();
   }
 
-  postMessage(obj = {}) {
-    console.log('VsCodeApi.postMessage', obj);
-    this.vscode.postMessage(obj);
+  post(action, data = {}) {
+    data[ActionProperty] = action;
+    console.log(`[POST] ${action}`, data);
+    this.vscode.postMessage(data);
   }
 
   // getStateKey(key, defaultValue) {
@@ -32,5 +36,26 @@ class VsCodeApi {
   // }
 
 }
+
+
+export function useMessage(callback) {
+
+  useEffect(() => {
+
+    const listener = (event) => {
+      const data = event.data || {};
+      callback(data[ActionProperty], data);
+    }
+
+    window.addEventListener('message', listener);
+
+    return () => {
+      window.removeEventListener('message', listener);
+    };
+
+  }, []);
+
+}
+
 
 export const VsCode = new VsCodeApi();

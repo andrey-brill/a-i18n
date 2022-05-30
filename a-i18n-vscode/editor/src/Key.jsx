@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
-import { KeyState } from '../../core/constants.js';
 
-import { A } from './Actions.jsx';
+import { Action, KeyState } from '../../core/constants.js';
 import { ActionsKey } from './ActionsKey.jsx';
 import { Dropdown } from './Dropdown.jsx';
 
@@ -17,7 +16,7 @@ export const Key = ({ selectedKey, selectedState }) => {
         {selectedState !== KeyState.Deleted && <ActionsKey value={selectedKey}/>}
       </div>
       <div>
-        <Dropdown title="Translations" right={true} as={[A.pinLocales]} />
+        <Dropdown title="Translations" right={true} actions={[Action.PinLocales]} />
       </div>
     </div>
   );
