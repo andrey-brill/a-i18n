@@ -2,7 +2,7 @@
 import vscode, { Uri } from 'vscode';
 
 import { Disposable } from './Disposable.js';
-import { buildFK$ } from './i18n/I18n.js';
+import { buildFK$, strNotEmpty } from './i18n/I18n.js';
 
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
@@ -48,7 +48,7 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
   const { keys, origins, locales, updates, loaded, error } = i18n.state;
 
-  const update = Object.assign({ [ActionProperty]: Action.Update, loaded, error });
+  const update = Object.assign({ [ActionProperty]: Action.Update, loaded, error }, ui);
 
   if (!update.loaded || update.error) {
     return update;
@@ -60,12 +60,9 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
   }
   update.updatedKeys = updatedKeys;
 
-  const { selectedKey, query } = ui;
+  if (update.selectedKey) {
 
-  if (selectedKey) {
-
-    update.selectedKey = selectedKey;
-    update.selectedState = resolveKeyState(selectedKey, locales, keys, updates);
+    update.selectedState = resolveKeyState(update.selectedKey, locales, keys, updates);
 
     let previous = null;
     let current = null;
@@ -88,7 +85,7 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
     for (const locale of locales) {
 
-      const fk = buildFK$(locale, selectedKey);
+      const fk = buildFK$(locale, update.selectedKey);
       selectedPrevious[locale] = previous ? previous[fk] : null;
       selectedCurrent[locale] = current ? current[fk] : null;
     }
@@ -98,13 +95,14 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
   }
 
-  if (previousUpdate.query !== query || keys.changed) {
+  let keysToRecalculate = [];
+  if (!previousUpdate || previousUpdate.query !== update.query || keys.changed) {
 
     const keysInfo = {};
     let keysInfoSize = 0;
     for (const key of keys.array) {
 
-      if (key.indexOf(query) >= 0) {
+      if (key.indexOf(update.query) >= 0) {
 
         keysInfoSize++;
         keysInfo[key] = true;
@@ -117,13 +115,17 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
     update.keysInfoReachLimit = keysInfoSize === KeysLimit;
     update.keysInfo = keysInfo;
-    update.query = query;
+    keysToRecalculate = Object.keys(update.keysInfo);
+  } else if (previousUpdate) {
+    update.keysInfoReachLimit = previousUpdate.keysInfoReachLimit;
+    update.keysInfo = previousUpdate.keysInfo;
+    keysToRecalculate = update.selectedKey ? [update.selectedKey] : keysToRecalculate;
   }
 
 
   if (update.keysInfo) {
 
-    for (const key of Object.keys(update.keysInfo)) {
+    for (const key of keysToRecalculate) {
 
       const info = {
         approved: 0,
@@ -133,7 +135,7 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
       for (const locale of locales) {
         const t = i18n.getT$(buildFK$(locale, key));
         if (t && t.approved) info.approved++;
-        if (t && t.value && t.value.length > 0) info.filled++;
+        if (t && strNotEmpty(t.value)) info.filled++;
       }
 
       info.approved = info.approved / locales.length;
@@ -215,6 +217,14 @@ export class I18nManager extends Disposable {
       case Action.Query:
         this.ui.query = data.query;
         this._updatePanel$();
+        return;
+
+      case Action.CheckKey:
+         this._postMessage$({
+           [ActionProperty]: Action.CheckKey,
+           key: data.key,
+           exists: this.i18n.state.keys.has(data.key)
+         });
         return;
 
       case Action.SelectKey:

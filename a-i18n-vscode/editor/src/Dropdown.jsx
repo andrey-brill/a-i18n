@@ -3,7 +3,7 @@ import React from 'react';
 
 import { ActionLink, onAction } from './Actions.jsx';
 import { IconMenu } from './Icons.jsx';
-import { Space } from './Space.jsx';
+import { Space } from './utils/Space.jsx';
 
 
 export const Dropdown = ({ title, actions = [], right = false, onClick }) => (

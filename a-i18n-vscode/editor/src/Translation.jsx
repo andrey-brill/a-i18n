@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import { ActionLink, onAction } from './Actions.jsx';
 import { IconApprove, IconCheckOff, IconComment, IconDiff } from './Icons.jsx';
 import { diffWords } from './utils/Diff.js';
-import { Space } from './Space.jsx';
+import { Space } from './utils/Space.jsx';
 import { Textarea } from './Textarea.jsx';
 import { hasComment$, tCompare$ } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
@@ -131,9 +131,9 @@ export const Translation = ({ locale, current, previous, onChange }) => {
       <div className='lt-grow'/>
       <Topper>
         <Space.div className='lt-actions' x={5} onClick={updater.current.onAction}>
-            <ActionLink a={ t.approved ? Action.Disapprove : Action.Approve } />
-            <ActionLink a={ showComment ? Action.RemoveComment : Action.AddComment } />
-            <ActionLink a={Action.RevertUpdate} disabled={!changed} />
+            <ActionLink action={ t.approved ? Action.Disapprove : Action.Approve } />
+            <ActionLink action={ showComment ? Action.RemoveComment : Action.AddComment } />
+            <ActionLink action={Action.RevertUpdate} disabled={!changed} />
         </Space.div>
       </Topper>
     </div>

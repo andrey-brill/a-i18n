@@ -22,7 +22,7 @@ function insertSpacesChildren({ x = 1, children = [], className = '' }) {
 export const Space = {
   div: (props = {}) => {
     const { children, className } = insertSpacesChildren(props);
-    return <div id={props.id} onClick={props.onClick} className={className}>{children}</div>;
+    return <div onClick={props.onClick} className={className}>{children}</div>;
   },
   a: (props = {}) => {
     const { children, className } = insertSpacesChildren(props);

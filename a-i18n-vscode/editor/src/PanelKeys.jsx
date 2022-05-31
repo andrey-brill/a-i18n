@@ -1,7 +1,7 @@
 
 import React, { useContext, useRef, useState } from 'react';
 
-import { simpleDebounce$ } from '../../../a-i18n-core-js/index.js';
+import { simpleDebounce$, strNotEmpty } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
 
 import { State } from './Contexts.jsx';
@@ -17,6 +17,7 @@ class QueryHandler extends InputConnector {
     super();
 
     this.query = '';
+    this.focused = false;
 
     this.highlightedKey = null; // not selected
     this.keys = [];
@@ -32,17 +33,24 @@ class QueryHandler extends InputConnector {
   }
 
   onArrowUp = () => {
+
     let index = this.keys.indexOf(this.highlightedKey) - 1;
     if (this.highlightedKey && index >= 0 && this.keys[index]) {
       this.highlightedKey = this.keys[index];
+      this.rerender();
+    } else if (this.highlightedKey && index === -1 && strNotEmpty(this.query)) {
+      this.highlightedKey = null;
       this.rerender();
     }
   }
 
   onArrowDown = () => {
     let index = this.keys.indexOf(this.highlightedKey) + 1;
-    if (this.highlightedKey && index > 0 && this.keys[index]) {
-      this.highlightedKey = this.keys[index];
+    if (this.highlightedKey && index > 0) {
+      this.highlightedKey = this.keys[index] || this.keys[0];
+      this.rerender();
+    } else if (!this.highlightedKey && this.keys.length > 0) {
+      this.highlightedKey = this.keys[0];
       this.rerender();
     }
   }
@@ -55,17 +63,13 @@ class QueryHandler extends InputConnector {
     }
   }
 
-
   handleClick() {
-    if (this.query && this.query.trim().length > 0) {
+    if (strNotEmpty(this.query)) {
       VsCode.post(Action.AddKey, { key: this.query.trim() });
     }
   }
 
   handleKeyDown(e) {
-
-    console.log('keydown', e.key);
-
     const handler = this.keyDown[e.key];
     if (handler) {
       e.preventDefault();
@@ -76,6 +80,11 @@ class QueryHandler extends InputConnector {
   handleChange(query = '') {
     this.query = query;
     this.debounceUpdate();
+  }
+
+  handleFocus(focused) {
+    this.focused = focused;
+    this.rerender();
   }
 
   requestQuery() {
@@ -92,13 +101,18 @@ class QueryHandler extends InputConnector {
 
     this.keys = keys;
 
-    if (this.keys.length <= 0) {
-      this.highlightedKey = null;
-    } else {
-      this.highlightedKey = this.highlightedKey && this.keys.indexOf(this.highlightedKey) >= 0 ? this.highlightedKey : this.keys[0];
+    if (this.previousKeys !== this.keys) {
+
+      if (this.keys.length <= 0) {
+        this.highlightedKey = null;
+      } else {
+        this.highlightedKey = this.highlightedKey && this.keys.indexOf(this.highlightedKey) >= 0 ? this.highlightedKey : this.keys[0];
+      }
+
+      this.previousKeys = this.keys;
     }
 
-    return this.highlightedKey;
+    return this.focused ? this.highlightedKey : null;
   }
 
 }
@@ -106,7 +120,6 @@ class QueryHandler extends InputConnector {
 export const PanelKeys = ({ className }) => {
 
   const state = useContext(State);
-  const keys = Object.keys(state.keysInfo || {}).sort();
 
   const [_, rerender] = useState();
 
@@ -115,7 +128,7 @@ export const PanelKeys = ({ className }) => {
     inputRef.current = new QueryHandler(() => rerender(Math.random()));
   }
 
-  const highlightedKey = inputRef.current.getHighlightedKey(keys);
+  const highlightedKey = inputRef.current.getHighlightedKey(state.keys);
 
   return (
     <div className={"g-panel-keys " + className}>
@@ -123,12 +136,14 @@ export const PanelKeys = ({ className }) => {
       <Dropdown title="A-i18n" actions={[Action.ReportBug, Action.GoToRepository]}/>
 
       <div className="lpk-bar">
-        <Input placeholder="Search key..." onChange={inputRef.current.onChange} onClick={inputRef.current.onClick} onKeyDown={inputRef.current.onKeyDown}
+        <Input placeholder="Search key..."
+          resetOnEscape={true}
+          connector={inputRef.current}
           action={Action.AddKey}
-          highlightAction={!highlightedKey}/>
+          actionHighlighted={!highlightedKey && inputRef.current.focused}/>
       </div>
 
-      <KeysList className="lpk-keys-list" keys={keys} keysInfo={state.keysInfo} selectedKey={state.selectedKey} highlightedKey={highlightedKey}/>
+      <KeysList className="lpk-keys-list" keys={state.keys} keysInfo={state.keysInfo} selectedKey={state.selectedKey} highlightedKey={highlightedKey}/>
     </div>
   );
 }

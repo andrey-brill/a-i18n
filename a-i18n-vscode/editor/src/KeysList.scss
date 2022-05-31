@@ -2,9 +2,59 @@
 
 .g-keys-list {
 
+  overflow: hidden overlay;
+
+  > .lkl-empty {
+    padding-left: var(--p-lg);
+    padding-right: var(--p-lg);
+    padding-bottom: 1px;
+    color: var(--color-disabled);
+    font-weight: 300;
+  }
+
   > .lkl-item {
+
+    padding-left: var(--p-lg);
+    padding-right: var(--p-lg);
     display: flex;
     flex-direction: row;
+    align-items: center;
+    padding-bottom: 1px;
+    line-height: 1px;
+
+    &.lkl-highlighted, &:hover {
+      background: var(--input-background);
+    }
+
+    &:hover > .lkl-key {
+      text-decoration: underline;
+    }
+
+    &:not(:hover) .g-actions-key {
+      display: none;
+    }
+
+    &.lkl-selected > .lkl-key {
+      color: var(--color-border-focus);
+      font-weight: var(--bold);
+    }
+
+    > .lkl-key {
+
+      cursor: pointer;
+      flex-basis: 100%;
+      min-width: 0;
+
+      > div {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        line-height: 1.7rem;
+        padding-left: var(--p-sm);
+        padding-right: var(--p-xs);
+      }
+    }
+
   }
 
 }

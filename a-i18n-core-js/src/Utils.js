@@ -49,6 +49,10 @@ export const buildFK$ = (locale, key) => locale + FullKeySeparator + key;
 export const splitFK$ = (fullKey) => fullKey.split(FullKeySeparator);
 
 export const strCompare$ = (a, b) => (a || '') === (b || '');
+
+export const strIsEmpty = (str) => !str || str.trim().length === 0;
+export const strNotEmpty = (str) => str && str.trim().length > 0;
+
 export const boolCompare$ = (a, b) => (!!a) === (!!b);
 
 export const tCompare$ = (a, b) => a && b && strCompare$(a.value, b.value) && boolCompare$(a.approved, b.approved) && strCompare$(a.comment, b.comment);

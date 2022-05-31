@@ -1,6 +1,6 @@
 
 
-import { Ai18n, I18nConfig, RootDirectory, TypeFile, directoryFrom$, endWithSlash$ } from '../../../../a-i18n-core-js/index.js';
+import { Ai18n, I18nConfig, RootDirectory, TypeFile, directoryFrom$, endWithSlash$, strIsEmpty } from '../../../../a-i18n-core-js/index.js';
 import { FS } from './FS.js';
 
 
@@ -37,7 +37,7 @@ export class I18n extends Ai18n {
       })
       .then(content => {
 
-        const contentJSON = (content || '').trim().length === 0 ? '{}' : content;
+        const contentJSON = strIsEmpty(content) ? '{}' : content;
         const i18nConfig = JSON.parse(contentJSON);
 
         const current = i18nConfig[this._config.directory] || {};

@@ -11,7 +11,7 @@ import { IconLoad } from './Icons.jsx';
 export const Editor = () => {
 
   const [context, setContext] = useState(null);
-  const [state, setState] = useState({});
+  const [state, setState] = useState(null);
 
   useMessage((action, data) => {
 
@@ -24,6 +24,7 @@ export const Editor = () => {
     }
 
     if (action === Action.Update) {
+      data.keys = Object.keys(data.keysInfo || {}).sort();
       setState(data);
     }
   });

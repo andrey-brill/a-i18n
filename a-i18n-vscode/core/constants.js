@@ -21,6 +21,7 @@ export const Action = {
   Update: 'Update',
 
   Query: 'Query',
+  CheckKey: 'CheckKey',
   SelectKey: 'SelectKey',
   UpdateWorkspaceState: 'UpdateWorkspaceState',
 

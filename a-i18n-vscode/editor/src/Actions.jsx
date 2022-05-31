@@ -1,56 +1,22 @@
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 
+import { simpleDebounce$ } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
-import { IconAdd, IconAddComment, IconAlert, IconApprove, IconCheckOff, IconCheckOn, IconCode, IconCopy, IconEdit, IconPin, IconRemoveComment, IconRevert, IconTrash } from './Icons.jsx';
-import { Space } from './Space';
-
-
-function a (title, icon, details = title) {
-  return { title, icon, details };
-}
-
-function actionInfo (action) {
-
-  const autoExportInfo = ' (Executing exporter on any changes)';
-
-  switch (action) {
-
-    case Action.AddKey: return a('Add', <IconAdd/>, 'Add new key');
-    case Action.CopyKey: return a('Copy key', <IconCopy/>);
-    case Action.RenameKey: return a('Rename key', <IconEdit/>);
-    case Action.DeleteKey: return a('Delete key', <IconTrash/>);
-
-    case Action.RevertUpdate: return a('Revert change', <IconRevert/>);
-    case Action.RevertUpdates: return a('Revert all changes', <IconRevert/>);
-
-    case Action.AddComment: return a('Add comment', <IconAddComment/>);
-    case Action.RemoveComment: return a('Remove comment', <IconRemoveComment/>);
-
-    case Action.Approve: return a('Approve', <IconApprove/>, 'Approve translation');
-    case Action.Disapprove: return a('Disapprove', <IconCheckOff/>, 'Disapprove translation');
-
-    case Action.ActivateAutoExport: return a('Auto-export', <IconCheckOn/>, 'Activate auto-export' + autoExportInfo);
-    case Action.DeactivateAutoExport: return a('Auto-export', <IconCheckOff/>, 'Deactivate auto-export' + autoExportInfo);
-
-    case Action.PinLocales: return a('Pin locales', <IconPin/>, 'Pin locales at the top of the list');
-
-    case Action.ReportBug: return a('Report about bug/feature', <IconAlert/>);
-    case Action.GoToRepository: return a('Open a-i18n repository', <IconCode/>);
-
-    default:
-      throw new Error('Unknown action: ' + action);
-  }
-}
+import { getActionInfo } from './getActionInfo.jsx';
+import { Input, InputConnector } from './Input.jsx';
+import { Overlay } from './utils/Overlay.jsx';
+import { useOnClickOutside } from './utils/useOnClickOutside.js';
+import { useMessage, VsCode } from './utils/VsCode.js';
 
 
 export const ActionButton = ({ action, className = '', disabled, highlighted = false, onClick }) => {
-  const a = actionInfo(action);
-  return <button id={disabled ? undefined : action} className={`g-action ${ highlighted ? 'la-highlighted' : '' } ${ disabled ? 'la-disabled' : '' } ${className}`} onClick={onClick} title={a.details}>{a.icon}<span>{a.title}</span></button>;
+  const a = getActionInfo(action);
+  return <button id={disabled ? undefined : action} disabled={disabled} className={`g-action ${ highlighted ? 'la-highlighted' : '' } ${ disabled ? 'la-disabled' : '' } ${className}`} onClick={onClick} title={a.details}>{a.icon}<span>{a.title}</span></button>;
 }
 
-export const ActionLink = ({ action, className = '', disabled, onClick, showTitle=true }) => {
-  const a = actionInfo(action);
+export const ActionLink = ({ action, className = '', disabled = false, onClick, showTitle=true }) => {
+  const a = getActionInfo(action);
   return <a id={disabled ? undefined : action} href='' className={'g-action ' + (disabled ? 'la-disabled' : '') + ' ' + className} onClick={onClick} title={a.details}>{a.icon}{showTitle ? <span>{a.title}</span> : undefined}</a>;
 }
 
@@ -60,6 +26,93 @@ export const onAction = (onClick) => (e) => {
 
   e.preventDefault();
 
-  const action = e.target.id || e.currentTarget.id;
+  const action = e.target.id || e.currentTarget.id || e.target && e.target.parentElement && e.target.parentElement.id;
   if (action) onClick(action);
+}
+
+
+class ActionHandler extends InputConnector {
+
+  constructor(key, rerender) {
+    super();
+    this.key = key;
+    this.rerender = rerender;
+
+    this.exists = true;
+    this.debounceCheck = simpleDebounce$(() => this.checkKey(), 300);
+  }
+
+  handleChange(key) {
+    this.resolveExists(this.previousKey, key);
+  }
+
+  resolveExists(previousKey, key) {
+
+    this.key = key;
+    this.previousKey = previousKey;
+
+    if (this.previousKey === key) {
+      this.exists = true;
+    } else {
+      this.debounceCheck();
+    }
+
+    return this.exists;
+  }
+
+  checkKey() {
+    if (this.key !== this.requestedKey) {
+      this.requestedKey = this.key;
+      VsCode.post(Action.CheckKey, { key: this.requestedKey });
+    }
+  }
+
+  onCheck(data = {}) {
+
+    if (data.key !== this.key) {
+      this.resolveExists(this.previousKey, this.key);
+    } else {
+      this.exists = data.exists;
+    }
+
+    this.rerender();
+  }
+
+
+}
+
+
+export const ActionModal = ({ action, value, onClose }) => {
+
+  const a = getActionInfo(action);
+  const ref = useOnClickOutside({ onTriggered: onClose });
+
+  const [_, rerender] = useState();
+
+  const connectorRef = useRef();
+  if (!connectorRef.current) {
+    connectorRef.current = new ActionHandler(value, () => rerender(Math.random())); // disable on same, check is exists
+  }
+
+  useMessage((action, data) => {
+    if (action === Action.CheckKey) {
+      connectorRef.current.onCheck(data);
+    }
+  });
+
+  const key = connectorRef.current.key;
+  const exists = connectorRef.current.resolveExists(value, key);
+
+  return (
+    <Overlay>
+      <div ref={ref} className='g-action-modal'>
+        <div className='lam-title'>{a.details}</div>
+        <div className='lam-previous'><span>Current:</span>{value}</div>
+        <div className='lam-input'>
+          <Input initialValue={value} action={action} connector={connectorRef.current} actionDisabled={exists}/>
+          { exists && value !== key && <span className='lam-exists'>The key already exists</span> }
+        </div>
+      </div>
+    </Overlay>
+  );
 }

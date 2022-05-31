@@ -5,11 +5,12 @@
 
 ## TODO
 
-- search keys
+- remove $
+- scroll to highlighted key
 
 - select key
-  - new, deleted, updated key mark
+- new, deleted, updated (tags)
 
 - locale order preference
-
 - modal for edit
+

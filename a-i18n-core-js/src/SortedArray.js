@@ -12,10 +12,8 @@ function binarySortedIndex (array, value) {
 
       if (array[mid] < value) {
         start = mid + 1;
-        lastStart = true;
       } else if (array[mid] > value) {
         end = mid - 1;
-        lastStart = false;
       } else if (array[mid] === value) {
         return mid;
       }
