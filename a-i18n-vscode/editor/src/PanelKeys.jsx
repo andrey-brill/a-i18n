@@ -1,7 +1,7 @@
 
 import React, { useContext, useRef, useState } from 'react';
 
-import { simpleDebounce$, strNotEmpty } from '../../../a-i18n-core-js/index.js';
+import { simpleDebounce, strNotEmpty } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
 
 import { State } from './Contexts.jsx';
@@ -23,7 +23,7 @@ class QueryHandler extends InputConnector {
     this.keys = [];
 
     this.rerender = rerender;
-    this.debounceUpdate = simpleDebounce$(() => this.requestQuery(), 300);
+    this.debounceUpdate = simpleDebounce(() => this.requestQuery(), 300);
 
     this.keyDown = {
       ArrowUp: this.onArrowUp,

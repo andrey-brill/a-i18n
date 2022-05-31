@@ -3,10 +3,10 @@
 
 import { Encoding, RootDirectory } from './Constants.js';
 import { InvalidDirectoryError, InvalidPathError } from './Errors.js';
-import { directoryFrom$, endWithSlash$, toPromise } from './Utils.js';
+import { directoryFrom, endWithSlash, toPromise } from './Utils.js';
 
 
-function validateRelativePath$(path) {
+function validateRelativePath(path) {
 
   if (!path || typeof path !== 'string' || !path.startsWith(RootDirectory)) {
     throw new InvalidPathError(path);
@@ -23,15 +23,15 @@ export class FileSystem {
     this._fs = fs;
 
     // directory with .i18n files
-    this._directory = endWithSlash$(validateRelativePath$(config.directory));
+    this._directory = endWithSlash(validateRelativePath(config.directory));
 
     // path to directory with .i18n.json config file
-    this._rootPath = endWithSlash$(this._fs.rootPath$(config.rootPath));
+    this._rootPath = endWithSlash(this._fs.rootPath$(config.rootPath));
   }
 
   _resolvePath$ (path) {
-    validateRelativePath$(path);
-    return endWithSlash$(this._rootPath + path.substring(RootDirectory.length));
+    validateRelativePath(path);
+    return endWithSlash(this._rootPath + path.substring(RootDirectory.length));
   }
 
   validateDirectory (path = this._directory) {
@@ -49,9 +49,9 @@ export class FileSystem {
   createPath (path) {
     return toPromise(() => {
 
-      validateRelativePath$(path);
+      validateRelativePath(path);
 
-      const directory = directoryFrom$(path);
+      const directory = directoryFrom(path);
       if (directory === this._directory || directory === RootDirectory) {
         return toPromise(true);
       } else {
@@ -83,7 +83,7 @@ export class FileSystem {
     });
   }
 
-  pathTo$ (fileName) { return this._directory + fileName; }
+  pathTo (fileName) { return this._directory + fileName; }
 
   delete (path) { return this._fs.delete(this._resolvePath$(path)) }
 

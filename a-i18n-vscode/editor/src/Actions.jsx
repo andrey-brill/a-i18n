@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 
-import { simpleDebounce$ } from '../../../a-i18n-core-js/index.js';
+import { simpleDebounce } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
 import { getActionInfo } from './getActionInfo.jsx';
 import { Input, InputConnector } from './Input.jsx';
@@ -39,7 +39,7 @@ class ActionHandler extends InputConnector {
     this.rerender = rerender;
 
     this.exists = true;
-    this.debounceCheck = simpleDebounce$(() => this.checkKey(), 300);
+    this.debounceCheck = simpleDebounce(() => this.checkKey(), 300);
   }
 
   handleChange(key) {

@@ -2,7 +2,7 @@
 import vscode, { Uri } from 'vscode';
 
 import { Disposable } from './Disposable.js';
-import { buildFK$, strNotEmpty } from './i18n/I18n.js';
+import { buildFK, strNotEmpty } from './i18n/I18n.js';
 
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
@@ -27,7 +27,7 @@ function resolveKeyState (key, locales, keys, updates) {
   const states = [];
   for (const locale of locales) {
 
-    const fk = buildFK$(locale, key);
+    const fk = buildFK(locale, key);
     const before = updates.before[fk];
     const after = updates.after[fk];
 
@@ -85,7 +85,7 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
     for (const locale of locales) {
 
-      const fk = buildFK$(locale, update.selectedKey);
+      const fk = buildFK(locale, update.selectedKey);
       selectedPrevious[locale] = previous ? previous[fk] : null;
       selectedCurrent[locale] = current ? current[fk] : null;
     }
@@ -133,7 +133,7 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
       };
 
       for (const locale of locales) {
-        const t = i18n.getT$(buildFK$(locale, key));
+        const t = i18n.getT(buildFK(locale, key));
         if (t && t.approved) info.approved++;
         if (t && strNotEmpty(t.value)) info.filled++;
       }

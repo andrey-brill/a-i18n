@@ -1,6 +1,6 @@
 import { CommentLine, ApprovedLine } from './Constants.js';
 
-export function parseLines$(content = '') {
+export function parseLines(content = '') {
 
   content = content.trim();
   if (content.length === 0) {

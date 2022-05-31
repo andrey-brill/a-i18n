@@ -1,7 +1,7 @@
 
 import vscode from 'vscode';
 
-import { endWithSlash$ } from './i18n/I18n.js';
+import { endWithSlash } from './i18n/I18n.js';
 
 
 export function toString$(uri) {
@@ -23,7 +23,7 @@ export function toString$(uri) {
 }
 
 export function toPath$(uri) {
-  return endWithSlash$(toString$(uri));
+  return endWithSlash(toString$(uri));
 }
 
 export function toFileName$(uri) {

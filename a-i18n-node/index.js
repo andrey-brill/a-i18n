@@ -4,7 +4,7 @@ import { FS } from './src/fs.js';
 
 
 export class I18n extends Ai18n {
-  __initializeFS$ () {
+  __initializeFS () {
     return FS;
   }
 }

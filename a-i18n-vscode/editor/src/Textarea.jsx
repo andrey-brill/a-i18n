@@ -1,13 +1,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import { safeValue$, simpleDebounce$, unsafeValue$ } from '../../../a-i18n-core-js/index.js';
+import { safeValue, simpleDebounce, unsafeValue } from '../../../a-i18n-core-js/index.js';
 
 export const Textarea = ({ initialValue = '', setValue }) => {
 
   const ref = useRef();
 
-  const [textarea, setTextarea] = useState(unsafeValue$(initialValue));
+  const [textarea, setTextarea] = useState(unsafeValue(initialValue));
 
   const state = useRef();
   if (!state.current) {
@@ -24,9 +24,9 @@ export const Textarea = ({ initialValue = '', setValue }) => {
         ref.current.style.height = ref.current.scrollHeight + "px";
       },
 
-      debounceSet: simpleDebounce$(() => {
+      debounceSet: simpleDebounce(() => {
 
-        const value = safeValue$(ref.current.value);
+        const value = safeValue(ref.current.value);
 
         if (state.current.lastUpdated !== value) {
           state.current.lastUpdated = value;

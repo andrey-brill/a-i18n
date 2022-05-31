@@ -6,7 +6,7 @@ import { IconApprove, IconCheckOff, IconComment, IconDiff } from './Icons.jsx';
 import { diffWords } from './utils/Diff.js';
 import { Space } from './utils/Space.jsx';
 import { Textarea } from './Textarea.jsx';
-import { hasComment$, tCompare$ } from '../../../a-i18n-core-js/index.js';
+import { hasComment, tCompare } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
 
 
@@ -45,7 +45,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
 
   const [forceUpdate, setForceUpdate] = useState(1);
 
-  const [showComment, setShowComment] = useState(hasComment$(current));
+  const [showComment, setShowComment] = useState(hasComment(current));
 
   const updater = useRef();
   if (!updater.current) {
@@ -107,7 +107,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
             if (previous) {
               setForceUpdate(Math.round(Math.random() * 10000));
               updateT(previous);
-              setShowComment(hasComment$(previous));
+              setShowComment(hasComment(previous));
             }
 
             break;
@@ -121,7 +121,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
   const localeParts = locale.split('-');
   const disabledClass = localeParts.length === 1 ? 'lt-disabled' : undefined;
 
-  const changed = previous && !tCompare$(t, previous);
+  const changed = previous && !tCompare(t, previous);
 
   return <div className='g-translation'>
     <div className='lt-header'>
