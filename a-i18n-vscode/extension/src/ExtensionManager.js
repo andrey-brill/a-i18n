@@ -1,7 +1,7 @@
 import vscode, { Uri } from 'vscode';
 
-import { I18nConfig, initFromConfigs$, initFromResourcePath$, TypeDirectory, TypeFile } from './i18n/I18n.js';
-import { errorHandler$, toPath$, toString$, toUniqueShortPath$ } from './Utils.js';
+import { I18nConfig, initFromConfigs, initFromResourcePath, TypeDirectory, TypeFile } from './i18n/I18n.js';
+import { errorHandler, toPath, uriToString, toUniqueShortPath } from './Utils.js';
 import { Disposable } from './Disposable.js';
 import { I18nManager } from './I18nManager.js';
 import { StatusBarManager } from './StatusBarManager.js';
@@ -18,32 +18,32 @@ export class ExtensionManager extends Disposable {
     this.statusBarManager = new StatusBarManager();
 
     this.configDefaults = {
-      errorHandler: errorHandler$,
+      errorHandler: errorHandler,
       exportHandler: (result, isError) => {
         if (isError) {
-          errorHandler$(result);
+          errorHandler(result);
         } else {
           if (result) {
             vscode.window.showInformationMessage(result.toString());
           }
         }
-      },
+      }
     }
   }
 
-  activate$(context) {
+  activate(context) {
 
-    this.dispose$();
+    this.dispose();
 
     this.context = context;
 
-    this.dis$(this.statusBarManager.init());
+    this.dis(this.statusBarManager.init());
 
-    this.dis$(vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      this.activate$();
+    this.dis(vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      this.activate();
     }));
 
-    const toCommand$ = (commandFn) => (a, b, c) => {
+    const toCommand = (commandFn) => (a, b, c) => {
       if (this.nonActiveReason) {
         if (this.nonActiveReason === NotInitializedText) {
           vscode.window.showInformationMessage(this.nonActiveReason);
@@ -54,20 +54,20 @@ export class ExtensionManager extends Disposable {
         try {
           commandFn.call(this, a, b, c);
         } catch (error) {
-          errorHandler$(error);
+          errorHandler(error);
         }
       }
     };
 
-    this.dis$(vscode.commands.registerCommand(Extension + ".openFolder", toCommand$(uri => {
+    this.dis(vscode.commands.registerCommand(Extension + ".openFolder", toCommand(uri => {
       this.openEditorByUri(uri, TypeDirectory);
     })));
 
-    this.dis$(vscode.commands.registerCommand(Extension + ".openFile", toCommand$(uri => {
+    this.dis(vscode.commands.registerCommand(Extension + ".openFile", toCommand(uri => {
       this.openEditorByUri(uri, TypeFile);
     })));
 
-    this.dis$(vscode.commands.registerCommand(Extension + ".open", toCommand$(() => {
+    this.dis(vscode.commands.registerCommand(Extension + ".open", toCommand(() => {
       this.openEditor();
     })));
 
@@ -82,7 +82,7 @@ export class ExtensionManager extends Disposable {
         .then(files => files.filter(file => file[0] === I18nConfig && file[1] === TypeFile)[0])
         .then(file => {
           if (file) {
-            return vscode.workspace.fs.readFile(Uri.parse(toPath$(folder) + file[0]))
+            return vscode.workspace.fs.readFile(Uri.parse(toPath(folder) + file[0]))
               .then(content => [folder, JSON.parse(content)]);
           } else {
             return null;
@@ -93,15 +93,15 @@ export class ExtensionManager extends Disposable {
 
         const configFiles = {};
         configInfos.filter(configInfo => !!configInfo).forEach(configInfo => {
-          configFiles[toPath$(configInfo[0])] = configInfo[1];
+          configFiles[toPath(configInfo[0])] = configInfo[1];
         });
 
         if (Object.keys(configInfos).length === 0) {
           return true;
         }
 
-        const i18ns = initFromConfigs$(configFiles, this.configDefaults);
-        const managers = i18ns.map(i18n => this.createManager$(i18n));
+        const i18ns = initFromConfigs(configFiles, this.configDefaults);
+        const managers = i18ns.map(i18n => this.createManager(i18n));
 
         this.nonActiveReason = null;
 
@@ -112,7 +112,7 @@ export class ExtensionManager extends Disposable {
       })
       .catch(e => {
         this.nonActiveReason = e.message;
-        errorHandler$(e);
+        errorHandler(e);
       })
   }
 
@@ -120,26 +120,26 @@ export class ExtensionManager extends Disposable {
 
     const rootFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!rootFolder) {
-      throw new Error(`Can't resolve workspace folder for uri: ` + toString$(uri));
+      throw new Error(`Can't resolve workspace folder for uri: ` + uriToString(uri));
     }
 
-    const rootPath = toPath$(rootFolder);
-    const resourcePath = resourceType === TypeFile ? toString$(uri) : toPath$(uri);
+    const rootPath = toPath(rootFolder);
+    const resourcePath = resourceType === TypeFile ? uriToString(uri) : toPath(uri);
 
-    const i18n = initFromResourcePath$(rootPath, resourcePath, resourceType, this.configDefaults);
+    const i18n = initFromResourcePath(rootPath, resourcePath, resourceType, this.configDefaults);
 
-    let manager = this.managers[i18n.fullPath$()];
+    let manager = this.managers[i18n.fullPath()];
 
     if (!manager) {
 
-      manager = this.createManager$(i18n);
+      manager = this.createManager(i18n);
 
       i18n.saveConfig();
-      newManager.connect();
+      manager.connect();
     }
 
-    manager.showPanel$();
-    this.updateTitles$();
+    manager.showPanel();
+    this.updateTitles();
   }
 
   openEditor() {
@@ -150,7 +150,7 @@ export class ExtensionManager extends Disposable {
       this.openEditorByUri(Uri.parse(paths[0]), TypeDirectory);
     } else if (paths.length > 1) {
 
-      const shorts = toUniqueShortPath$(paths);
+      const shorts = toUniqueShortPath(paths);
       const items = paths.map(p => ({ label: shorts[p], detail: p }));
 
       vscode.window.showQuickPick(items, { canPickMany: false })
@@ -162,38 +162,38 @@ export class ExtensionManager extends Disposable {
    }
   }
 
-  dispose$() {
-    this.dispose();
+  dispose() {
+    super.dispose();
     this.managers = {};
     this.nonActiveReason = NotInitializedText;
   }
 
-  createManager$(i18n) {
+  createManager(i18n) {
 
     const manager = new I18nManager(this.context, i18n)
-    this.dis$(manager);
+    this.dis(manager);
 
     if (this.managers[manager.path]) {
       throw new Error('WTF?');
     }
 
     this.managers[manager.path] = manager;
-    this.onManagersChanged$();
+    this.onManagersChanged();
 
     return manager;
   }
 
-  onManagersChanged$() {
+  onManagersChanged() {
     this.statusBarManager.update(Object.keys(this.managers));
   }
 
-  updateTitles$() {
+  updateTitles() {
 
     const paths = Object.keys(this.managers);
-    const shortPaths = toUniqueShortPath$(paths)
+    const shortPaths = toUniqueShortPath(paths)
 
     for (const fullPath of paths) {
-      this.managers[fullPath].setTitle$(shortPaths[fullPath]);
+      this.managers[fullPath].setTitle(shortPaths[fullPath]);
     }
   }
 }

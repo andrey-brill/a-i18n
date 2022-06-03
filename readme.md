@@ -31,7 +31,7 @@ __Example:__
 - Approved mark `+` or `-`
   - approves follows texts
   - give additional check if approved text was changed
-- Backlogging updates in `en@.i18n`
+- Backlogging changes in `en@.i18n`
   - git pull can be done during editing texts
 - Exporter `.i18n.js`
   - any format of i18n can be supported to combine with other `t(key)`-libs
@@ -81,8 +81,7 @@ Legend of symbols:
 
 ```js
 class AClass {
-  __init$() // abstract sync function
-  _export() // private async function (promise)
-  import$() // public sync function
+  __init() // abstract sync function
+  _export() // private function
 }
 ```

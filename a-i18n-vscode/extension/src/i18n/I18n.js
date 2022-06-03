@@ -6,7 +6,7 @@ import { FS } from './FS.js';
 
 const ConfigPath = RootDirectory + I18nConfig;
 
-function fullPath$ (rootPath, directory) {
+function _fullPath (rootPath, directory) {
   return endWithSlash(rootPath) + directory.substring(RootDirectory.length);
 }
 
@@ -22,8 +22,8 @@ export class I18n extends Ai18n {
     return FS;
   }
 
-  fullPath$() {
-    return fullPath$(this._config.rootPath, this._config.directory);
+  fullPath() {
+    return _fullPath(this._config.rootPath, this._config.directory);
   }
 
   saveConfig() {
@@ -52,7 +52,7 @@ export class I18n extends Ai18n {
 }
 
 
-export function initFromConfigs$ (configFiles = {}, configDefaults = {}) {
+export function initFromConfigs (configFiles = {}, configDefaults = {}) {
 
   const result = {};
 
@@ -65,7 +65,7 @@ export function initFromConfigs$ (configFiles = {}, configDefaults = {}) {
       const savedConfig = configFile[directory];
       const config = Object.assign({}, configDefaults, savedConfig, { rootPath, directory  })
 
-      const fullPath = fullPath$(rootPath, directory);
+      const fullPath = _fullPath(rootPath, directory);
       if (!result[fullPath]) {
         result[fullPath] = new I18n(config);
       }
@@ -77,7 +77,7 @@ export function initFromConfigs$ (configFiles = {}, configDefaults = {}) {
   return Object.values(result);
 }
 
-export function initFromResourcePath$ (rootPath, resourcePath, resourceType, configDefaults = {}) {
+export function initFromResourcePath (rootPath, resourcePath, resourceType, configDefaults = {}) {
 
   let directoryPath = resourcePath;
   if (resourceType === TypeFile) {

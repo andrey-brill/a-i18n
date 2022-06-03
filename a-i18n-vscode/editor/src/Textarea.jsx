@@ -16,7 +16,7 @@ export const Textarea = ({ initialValue = '', setValue }) => {
       lastUpdated: initialValue,
 
       onChange: (event) => {
-        setTextarea(event.target.value);
+        setTextarea(unsafeValue(event.target.value));
       },
 
       onResize: () => {

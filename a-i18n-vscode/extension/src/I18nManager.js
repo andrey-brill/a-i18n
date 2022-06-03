@@ -6,8 +6,8 @@ import { buildFK, strNotEmpty } from './i18n/I18n.js';
 
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
-import logo from '../svg/logo.svg';
-import { KeyState, Action, ActionProperty } from '../../core/constants.js';
+import icon from '../svg/page-icon.svg';
+import { KeyState, Action, ActionProperty, Extension, Preferences, workspaceKey } from '../../core/constants.js';
 
 
 
@@ -18,9 +18,9 @@ const DefaultUI = {
 
 const KeysLimit = 50;
 
-function resolveKeyState (key, locales, keys, updates) {
+function resolveKeyState (key, locales, keys, changes) {
 
-  if (!updates.keys.has(key)) {
+  if (!changes.keys.has(key)) {
     return keys.has(key) ? KeyState.Original : KeyState.Deleted;
   }
 
@@ -28,55 +28,83 @@ function resolveKeyState (key, locales, keys, updates) {
   for (const locale of locales) {
 
     const fk = buildFK(locale, key);
-    const before = updates.before[fk];
-    const after = updates.after[fk];
+    const before = changes.before[fk];
+    const after = changes.after[fk];
 
     if (before && !after) {
       states.push(KeyState.Deleted);
     } else if (after && !before) {
       states.push(KeyState.New);
     } else {
-      return KeyState.Updated;
+      return KeyState.Changed;
     }
   }
 
   return states[0];
 }
 
+function getConfiguration() {
+  return vscode.workspace.getConfiguration(Extension);
+}
 
-function buildUpdate(previousUpdate = {}, ui, i18n) {
 
-  const { keys, origins, locales, updates, loaded, error } = i18n.state;
+function buildPreferences(context) {
 
-  const update = Object.assign({ [ActionProperty]: Action.Update, loaded, error }, ui);
+  const workspaceState = {};
 
-  if (!update.loaded || update.error) {
-    return update;
+  const preferences = {};
+
+  for (const key of context.workspaceState.keys()) {
+    workspaceState[key] = context.workspaceState.get(key);
   }
 
-  const updatedKeys = {};
-  for (const key of updates.keys) {
-    updatedKeys[key] = resolveKeyState(key, locales, keys, updates);
+  const configuration = getConfiguration();
+
+  for (const key of Object.keys(Preferences)) {
+    const wsValue = workspaceState[workspaceKey(key)];
+    preferences[key] = wsValue !== null && wsValue !== undefined ? wsValue : configuration.get(key);
   }
-  update.updatedKeys = updatedKeys;
 
-  if (update.selectedKey) {
+  return preferences;
+}
 
-    update.selectedState = resolveKeyState(update.selectedKey, locales, keys, updates);
+
+function buildState(previousState = {}, ui, i18n, context) {
+
+  const { keys, origins, locales, changes, loaded, error } = i18n.state;
+
+  const state = Object.assign({ loaded, error }, ui);
+
+  state.preferences = buildPreferences(context);
+  state.autoExport = i18n.autoExport;
+
+  if (!state.loaded || state.error) {
+    return state;
+  }
+
+  const changedKeys = {};
+  for (const key of changes.keys) {
+    changedKeys[key] = resolveKeyState(key, locales, keys, changes);
+  }
+  state.changedKeys = changedKeys;
+
+  if (state.selectedKey) {
+
+    state.selectedState = resolveKeyState(state.selectedKey, locales, keys, changes);
 
     let previous = null;
     let current = null;
 
-    switch (update.selectedState) {
+    switch (state.selectedState) {
       case KeyState.Original:
         current = origins;
         break;
       case KeyState.New:
-        current = updates.after;
+        current = changes.after;
         break;
-      case KeyState.Updated:
-        previous = updates.before;
-        current = updates.after;
+      case KeyState.Changed:
+        previous = changes.before;
+        current = changes.after;
         break;
     }
 
@@ -85,24 +113,24 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
 
     for (const locale of locales) {
 
-      const fk = buildFK(locale, update.selectedKey);
+      const fk = buildFK(locale, state.selectedKey);
       selectedPrevious[locale] = previous ? previous[fk] : null;
       selectedCurrent[locale] = current ? current[fk] : null;
     }
 
-    update.selectedCurrent = selectedCurrent;
-    update.selectedPrevious = selectedPrevious;
+    state.selectedCurrent = selectedCurrent;
+    state.selectedPrevious = selectedPrevious;
 
   }
 
   let keysToRecalculate = [];
-  if (!previousUpdate || previousUpdate.query !== update.query || keys.changed) {
+  if (!previousState || previousState.query !== state.query || keys.changed) {
 
     const keysInfo = {};
     let keysInfoSize = 0;
     for (const key of keys.array) {
 
-      if (key.indexOf(update.query) >= 0) {
+      if (key.indexOf(state.query) >= 0) {
 
         keysInfoSize++;
         keysInfo[key] = true;
@@ -113,17 +141,17 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
       }
     }
 
-    update.keysInfoReachLimit = keysInfoSize === KeysLimit;
-    update.keysInfo = keysInfo;
-    keysToRecalculate = Object.keys(update.keysInfo);
-  } else if (previousUpdate) {
-    update.keysInfoReachLimit = previousUpdate.keysInfoReachLimit;
-    update.keysInfo = previousUpdate.keysInfo;
-    keysToRecalculate = update.selectedKey ? [update.selectedKey] : keysToRecalculate;
+    state.keysInfoReachLimit = keysInfoSize === KeysLimit;
+    state.keysInfo = keysInfo;
+    keysToRecalculate = Object.keys(state.keysInfo);
+  } else if (previousState) {
+    state.keysInfoReachLimit = previousState.keysInfoReachLimit;
+    state.keysInfo = previousState.keysInfo;
+    keysToRecalculate = state.selectedKey ? [state.selectedKey] : keysToRecalculate;
   }
 
 
-  if (update.keysInfo) {
+  if (state.keysInfo) {
 
     for (const key of keysToRecalculate) {
 
@@ -141,12 +169,13 @@ function buildUpdate(previousUpdate = {}, ui, i18n) {
       info.approved = info.approved / locales.length;
       info.filled = info.filled / locales.length;
 
-      update.keysInfo[key] = info;
+      state.keysInfo[key] = info;
     }
   }
 
-  return update;
+  return state;
 }
+
 
 export class I18nManager extends Disposable {
 
@@ -155,34 +184,23 @@ export class I18nManager extends Disposable {
 
     this.context = context;
     this.i18n = i18n;
-    this.path = i18n.fullPath$();
+    this.path = i18n.fullPath();
     this.dispose();
   }
 
-  _buildInit$() {
-
-    const message = { [ActionProperty]: Action.Init, workspaceState: {} };
-
-    for (const key of this.context.workspaceState.keys()) {
-      message.workspaceState[key] = this.context.workspaceState.get(key);
-    }
-
-    return message;
-  }
-
-  showPanel$() {
+  showPanel() {
 
     if (this.panel) {
       this.panel.reveal();
       return;
     }
 
-    const panel = this.dis$(vscode.window.createWebviewPanel("a-i18n-editor", "A-i18n", vscode.ViewColumn.One, {
+    const panel = this.dis(vscode.window.createWebviewPanel("a-i18n-editor", "A-i18n", vscode.ViewColumn.One, {
       retainContextWhenHidden: true,
       enableScripts: true
     }));
 
-    panel.iconPath = Uri.parse(logo);
+    panel.iconPath = Uri.parse(icon);
 
     const script = editorJs.replace('"<script></script>"', '"<scr" + "ipt></scr" + "ipt>"'); // in react
 
@@ -193,89 +211,100 @@ export class I18nManager extends Disposable {
 
     panel.webview.html = templateParts.shift() + script + templateParts.shift(); // replace() not working sometimes
 
-    this.dis$(panel.onDidDispose(() => {
-      this._resetPanel$();
+    this.dis(panel.onDidDispose(() => {
+      this._resetPanel();
     }));
 
-    this.dis$(panel.webview.onDidReceiveMessage((message) => {
-      console.log('I18nManager.handlePanelMessage', message);
-      this._handleAction$(message[ActionProperty], message);
+    this.dis(panel.webview.onDidReceiveMessage((message) => {
+      this._handleAction(message[ActionProperty], message);
     }));
 
     this.panel = panel;
   }
 
-  _handleAction$(action, data) {
+
+  _handleAction(action, data) {
 
     switch(action) {
 
-      case Action.Ready:
-        this._postMessage$(this._buildInit$())
-        this._updatePanel$();
-        return;
+      case Action.State:
+        return this._postState();
 
       case Action.Query:
         this.ui.query = data.query;
-        this._updatePanel$();
-        return;
+        return this._postState();
 
       case Action.CheckKey:
-         this._postMessage$({
-           [ActionProperty]: Action.CheckKey,
-           key: data.key,
-           exists: this.i18n.state.keys.has(data.key)
-         });
-        return;
+        return this._post(Action.CheckKey, {
+          key: data.key,
+          exists: this.i18n.state.keys.has(data.key)
+        });
 
       case Action.SelectKey:
         this.ui.selectedKey = data.key;
-        this._updatePanel$();
-        return;
+        return this._postState();
 
       case Action.AddKey:
-        this.i18n
+        return this.i18n
           .addKey({ key: data.key })
-          .then(() => {
-            this.ui.selectedKey = data.key;
-            this._updatePanel$();
-          });
-        return;
+          .then(() => this._handleAction(Action.SelectKey, data));
 
-      case Action.UpdateWorkspaceState:
+      case Action.Preference:
 
-        for (const key of Object.keys(data)) {
-          if (key !== ActionProperty) {
-            this.context.workspaceState.update(key, data[key]);
-          }
+        const { key, value, global = false, state = true } = data;
+
+        let task = null;
+
+        if (global) {
+          task = getConfiguration().update(key, value, global)
+        } else {
+          task = this.context.workspaceState.update(workspaceKey(key), value);
         }
 
-        return;
+        return task.then(() => {
+          if (state) this._postState();
+        });
+
+      case Action.ApplyChange:
+        return this.i18n.applyChange(data.translation).then(() => {
+          this._postState();
+        });
+
+      case Action.AutoExport:
+        this.i18n.autoExport = data.value;
+        return this.i18n.saveConfig().then(() => this._postState());
+
+      case Action.SaveAndExport:
+      case Action.Save:
+        return this.i18n.save().then(() => this._postState());
+      case Action.Export:
+        return this.i18n.export();
     }
   }
 
-  setTitle$(title) {
+  setTitle(title) {
     if (this.panel) {
       this.panel.title = title;
     }
   }
 
-  _updatePanel$() {
+  _postState() {
     if (this.i18n && this.panel) {
-      const nextUpdate = buildUpdate(this.previousUpdate, this.ui, this.i18n);
-      this._postMessage$(nextUpdate);
-      this.previousUpdate = nextUpdate;
+      const nextState = buildState(this.previousState, this.ui, this.i18n, this.context);
+      this._post(Action.State, nextState);
+      this.previousState = nextState;
     }
   }
 
-  _postMessage$(message) {
+  _post(action, message) {
 
-    if (!message) {
-      throw new Error('_postMessage$.message is undefined!')
+    if (!message || !action) {
+      throw new Error('I18nManager._post.message is undefined!')
     }
 
     if (this.panel) {
+      message[ActionProperty] = action;
       // postMessage works in single tread, thus it wait while React is rendering
-      console.log('I18nManager._postMessage$', message[ActionProperty], message);
       this.panel.webview.postMessage(message);
     } else {
       console.error("Can't post message", message);
@@ -288,10 +317,10 @@ export class I18nManager extends Disposable {
       throw new Error('WTF?');
     }
 
-    return this.i18n.connect({ onChange: () => this._updatePanel$() })
+    return this.i18n.connect({ onChange: () => this._postState() })
       .then(unsubscribe => {
         if (unsubscribe) { // can be undefined on catch error
-          this.dis$(unsubscribe);
+          this.dis(unsubscribe);
           return this.i18n.load();
         }
       });
@@ -299,12 +328,14 @@ export class I18nManager extends Disposable {
 
   dispose() {
     super.dispose();
-    this._resetPanel$();
+    this._resetPanel();
   }
 
-  _resetPanel$() {
+  _resetPanel() {
     this.panel = null;
-    this.previousUpdate = {};
+    this.previousState = {};
     this.ui = Object.assign({}, DefaultUI);
   }
 }
+
+

@@ -1,13 +1,13 @@
 
-import React, { useContext, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { simpleDebounce, strNotEmpty } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
 
-import { State } from './Contexts.jsx';
+import { useContextState } from './State.jsx';
 import { Dropdown } from './Dropdown.jsx';
 import { InputConnector, Input } from './Input.jsx';
-import { KeysList } from './KeysList';
+import { PanelKeysList } from './KeysLists';
 import { VsCode } from './utils/VsCode.js';
 
 
@@ -23,13 +23,13 @@ class QueryHandler extends InputConnector {
     this.keys = [];
 
     this.rerender = rerender;
-    this.debounceUpdate = simpleDebounce(() => this.requestQuery(), 300);
+    this.debounceUpdate = simpleDebounce(() => this.requestQuery(), 200);
 
-    this.keyDown = {
+    Object.assign(this.keyDown, {
       ArrowUp: this.onArrowUp,
       ArrowDown: this.onArrowDown,
       Enter: this.onEnter
-    }
+    });
   }
 
   onArrowUp = () => {
@@ -66,14 +66,6 @@ class QueryHandler extends InputConnector {
   handleClick() {
     if (strNotEmpty(this.query)) {
       VsCode.post(Action.AddKey, { key: this.query.trim() });
-    }
-  }
-
-  handleKeyDown(e) {
-    const handler = this.keyDown[e.key];
-    if (handler) {
-      e.preventDefault();
-      handler(e);
     }
   }
 
@@ -119,7 +111,7 @@ class QueryHandler extends InputConnector {
 
 export const PanelKeys = ({ className }) => {
 
-  const state = useContext(State);
+  const state = useContextState();
 
   const [_, rerender] = useState();
 
@@ -143,7 +135,13 @@ export const PanelKeys = ({ className }) => {
           actionHighlighted={!highlightedKey && inputRef.current.focused}/>
       </div>
 
-      <KeysList className="lpk-keys-list" keys={state.keys} keysInfo={state.keysInfo} selectedKey={state.selectedKey} highlightedKey={highlightedKey}/>
+      <PanelKeysList className="lpk-keys-list"
+        keys={state.keys}
+        keysInfo={state.keysInfo}
+        keysInfoReachLimit={state.keysInfoReachLimit}
+        changedKeys={state.changedKeys}
+        selectedKey={state.selectedKey}
+        highlightedKey={highlightedKey}/>
     </div>
   );
 }

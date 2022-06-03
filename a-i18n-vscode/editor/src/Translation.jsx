@@ -2,12 +2,12 @@
 import React, { useRef, useState } from 'react';
 
 import { ActionLink, onAction } from './Actions.jsx';
-import { IconApprove, IconCheckOff, IconComment, IconDiff } from './Icons.jsx';
-import { diffWords } from './utils/Diff.js';
+import { IconApprove, IconCheckOff, IconComment } from './Icons.jsx';
 import { Space } from './utils/Space.jsx';
 import { Textarea } from './Textarea.jsx';
 import { hasComment, tCompare } from '../../../a-i18n-core-js/index.js';
 import { Action } from '../../core/constants.js';
+import { TranslationDiff } from './TranslationDiff';
 
 
 const Topper = ({ children }) => (
@@ -17,31 +17,14 @@ const Topper = ({ children }) => (
   </div>
 )
 
-const prepare = (value) => (value || '').replace(/\s/g, '⎵');
-
-const DiffLine = ({ previous = '', current = '' }) => {
-
-  let diffValue = undefined;
-  if (previous !== current) {
-    diffValue = diffWords(previous || '', current);
-  }
-
-  return <>
-    {
-      diffValue &&
-      <div className='lt-line lt-diff'>
-        <span><IconDiff /></span>
-        <div>{diffValue.map((part, i) => <span key={i} className={part.added ? 'lt-added' : (part.removed ? 'lt-removed' : undefined)}>{prepare(part.value)}</span>)}</div>
-      </div>
-    }
-  </>
-}
-
-
 
 export const Translation = ({ locale, current, previous, onChange }) => {
 
-  const [t, setT] = useState(current); // ignoring incoming updates on change
+  if (!current) {
+    throw new Error(`Can't render translation without current state`);
+  }
+
+  const [t, setT] = useState(current); // ignoring incoming changes on change
 
   const [forceUpdate, setForceUpdate] = useState(1);
 
@@ -52,9 +35,9 @@ export const Translation = ({ locale, current, previous, onChange }) => {
 
     const single = Object.assign({ locale }, current);
 
-    const updateT = (updates) => {
+    const updateT = (changes) => {
 
-      Object.assign(single, updates);
+      Object.assign(single, changes);
 
       const copy = Object.assign({}, single);
       setT(copy)
@@ -102,7 +85,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
 
             break;
 
-          case Action.RevertUpdate:
+          case Action.RevertChange:
 
             if (previous) {
               setForceUpdate(Math.round(Math.random() * 10000));
@@ -115,8 +98,6 @@ export const Translation = ({ locale, current, previous, onChange }) => {
       })
     }
   }
-
-  console.log('render t', JSON.stringify(t));
 
   const localeParts = locale.split('-');
   const disabledClass = localeParts.length === 1 ? 'lt-disabled' : undefined;
@@ -133,7 +114,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
         <Space.div className='lt-actions' x={5} onClick={updater.current.onAction}>
             <ActionLink action={ t.approved ? Action.Disapprove : Action.Approve } />
             <ActionLink action={ showComment ? Action.RemoveComment : Action.AddComment } />
-            <ActionLink action={Action.RevertUpdate} disabled={!changed} />
+            <ActionLink action={Action.RevertChange} disabled={!changed} />
         </Space.div>
       </Topper>
     </div>
@@ -144,7 +125,7 @@ export const Translation = ({ locale, current, previous, onChange }) => {
       </div>
       {
         previous &&
-        <DiffLine previous={previous.value} current={t.value} />
+        <TranslationDiff previous={previous.value} current={t.value} />
       }
       {
         showComment &&

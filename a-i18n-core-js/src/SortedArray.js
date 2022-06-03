@@ -27,7 +27,7 @@ function binarySortedIndex (array, value) {
 export class SortedArray {
 
   constructor() {
-    this.changed = true; // needed to update view component
+    this.changed = true; // needed to rerender view component
   }
 
   get array() {

@@ -1,8 +1,8 @@
 
-import React, { useContext } from 'react';
+import React from 'react';
 
 import { KeyState } from '../../core/constants.js';
-import { State } from './Contexts.jsx';
+import { useContextState } from './State.jsx';
 import { IconBinoculars } from './Icons.jsx';
 import { Key } from './Key';
 import { Translations } from './Translations.jsx';
@@ -10,13 +10,12 @@ import { Translations } from './Translations.jsx';
 
 export const PanelTranslations = ({ className }) => {
 
-  const state = useContext(State);
-  const { selectedKey, selectedState } = state;
+  const { selectedKey, selectedState, selectedCurrent, selectedPrevious } = useContextState();
 
   const content = selectedKey ?
     <>
       <Key selectedKey={selectedKey} selectedState={selectedState} />
-      {selectedState !== KeyState.Deleted && <Translations />}
+      {selectedState !== KeyState.Deleted && <Translations key={selectedKey} selectedKey={selectedKey} selectedCurrent={selectedCurrent} selectedPrevious={selectedPrevious}/>}
     </>
     :
     <div className='lpt-not-selected'>

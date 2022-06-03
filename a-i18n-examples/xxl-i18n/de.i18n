@@ -21942,7 +21942,7 @@
 /operator_update_i18n_add-on=
 -operator_update_i18n_add-on=
 /operator_update_i18n_branches=Operator
--operator_update_i18n_branches=Update I18n Branches
+-operator_update_i18n_branches=State I18n Branches
 /operator_update_i18n_statistics=
 -operator_update_i18n_statistics=
 /operator_update_i18n_trunk=
@@ -30839,7 +30839,7 @@
 -update_given_add-on's_translation_data_(found_as_a_py_tuple_in_the_add-on's_source_code)=
 -update_i18n_svn's_branches_(po_files)=
 -update_objects_paths_list_with_new_data_from_the_archive=
--update_on_edit=Update beim bearbeiten
+-update_on_edit=State beim bearbeiten
 -update_other_affected_window_spaces_automatically_to_reflect_changes_during_interactive_operations_such_as_transform=
 -update_pivot_position=
 -update_po_file,_try_to_rebuild_mo_file,_and_refresh_blender's_ui=

@@ -4,7 +4,7 @@ import vscode from 'vscode';
 import { endWithSlash } from './i18n/I18n.js';
 
 
-export function toString$(uri) {
+export function uriToString(uri) {
 
   if (uri) {
 
@@ -22,23 +22,22 @@ export function toString$(uri) {
   throw new Error('Uri is null or undefined');
 }
 
-export function toPath$(uri) {
-  return endWithSlash(toString$(uri));
+export function toPath(uri) {
+  return endWithSlash(uriToString(uri));
 }
 
-export function toFileName$(uri) {
-  return toString$(uri).split('/').pop();
+export function toFileName(uri) {
+  return uriToString(uri).split('/').pop();
 }
 
 
-export function errorHandler$(error) {
+export function errorHandler(error) {
   console.error(error);
-  console.log('error.json', JSON.stringify(error));
   vscode.window.showErrorMessage(error.message);
 }
 
 
-export function toUniqueShortPath$(paths = []) {
+export function toUniqueShortPath(paths = []) {
 
   if (paths.length === 0) {
     return {};

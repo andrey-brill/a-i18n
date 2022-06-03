@@ -5,7 +5,6 @@ import { KeyValueSeparator } from './Constants.js';
 export const ErrorCodes = {
   NotLoaded: 'NotLoaded',
   I18nError: 'I18nError',
-  InvalidLine: 'InvalidLine',
   DuplicateKey: 'DuplicateKey',
   NotResolvedError: 'NotResolvedError',
   UnappliedChanges: 'UnappliedChanges',
@@ -40,17 +39,18 @@ class StateError extends I18nError {
   }
 }
 
-export class InvalidLineError extends StateError {
-  constructor(line) {
-    super(ErrorCodes.InvalidLine, `Can't apply line (invalid format): ${line}`);
+export class DuplicateKeyError extends StateError {
+  constructor(key) {
+    super(ErrorCodes.DuplicateKey, `All i18n-keys must be unique.\nFound duplicated key: ${key}`);
   }
 }
 
-export class DuplicateKeyError extends StateError {
-  constructor(key) {
-    super(ErrorCodes.DuplicateKey, `Can't parse line (duplicate key): ${key}`);
+export class NotUniqueI18nFilesError extends StateError {
+  constructor(file1, file2) {
+    super(ErrorCodes.NotUniqueI18nFiles, `All locales of i18n-files must be unique.\nFound duplicated locale: ${file1} & ${file2}`)
   }
 }
+
 
 export class NotResolvedError extends I18nError {
   constructor(error) {
@@ -82,11 +82,6 @@ export class KeyExistError extends I18nError {
   }
 }
 
-export class NotUniqueI18nFilesError extends I18nError {
-  constructor() {
-    super(ErrorCodes.NotUniqueI18nFiles, `I18n files contains duplicated locales.`)
-  }
-}
 
 export class NoI18nJsFileError extends I18nError {
   constructor() {

@@ -1,0 +1,32 @@
+
+.g-panel-changes {
+
+  > .lpc-keys-list {
+    padding-top: var(--p-md);
+    padding-bottom: var(--p-md);
+    flex-basis: 100%;
+  }
+
+  > .lpc-bar {
+    padding: var(--p-lg);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > .g-check-box {
+      flex-grow: 1;
+    }
+
+    > button {
+      border-radius: var(--border-radius);
+    }
+
+    > .lpc-save {
+      margin-left: var(--p-md);
+      background: var(--color-success);
+      border-color: var(--color-success);
+      color: var(--vscode-button-foreground);
+    }
+  }
+
+}

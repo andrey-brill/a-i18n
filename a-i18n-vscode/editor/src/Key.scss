@@ -37,14 +37,25 @@
     display: flex;
     align-items: center;
     font-size: 1.2rem;
+    min-width: 0;
 
-    > span {
+    > .g-key-state-tag {
+      font-size: 70%;
+      margin-top: 0.15em;
+      margin-left: 0.5em;
+      display: inline-flex;
+    }
+
+    > .lk-key {
       font-weight: var(--bold);
-      padding-right: var(--p-lg);
       padding-left: var(--p-lg);
+      min-width: 0;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
 
     > div {
+      padding-left: 0.5em;
       display: inline-flex;
     }
   }

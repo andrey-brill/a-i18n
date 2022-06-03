@@ -21,7 +21,7 @@ export class Disposable {
     this.disposables = [];
   }
 
-  dis$(disposable) {
+  dis(disposable) {
 
     if (!disposable) {
       throw new Error('WTF?');

@@ -5,12 +5,6 @@
 
 ## TODO
 
-- remove $
+- test:
+- test full reload on file change
 - scroll to highlighted key
-
-- select key
-- new, deleted, updated (tags)
-
-- locale order preference
-- modal for edit
-

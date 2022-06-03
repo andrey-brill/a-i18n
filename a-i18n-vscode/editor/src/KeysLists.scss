@@ -4,12 +4,27 @@
 
   overflow: hidden overlay;
 
-  > .lkl-empty {
+  > .lkl-info {
     padding-left: var(--p-lg);
     padding-right: var(--p-lg);
     padding-bottom: 1px;
     color: var(--color-disabled);
     font-weight: 300;
+  }
+
+  > .lkl-group {
+    padding-left: var(--p-lg);
+    padding-right: var(--p-lg);
+    font-size: 0.8em;
+    display: flex;
+    > .g-key-state-tag {
+      border: 0 !important;
+      padding: 0 !important;
+    }
+  }
+
+  > .lkl-item + .lkl-group {
+    padding-top: var(--p-xs);
   }
 
   > .lkl-item {
@@ -26,7 +41,7 @@
       background: var(--input-background);
     }
 
-    &:hover > .lkl-key {
+    > .lkl-key:hover  {
       text-decoration: underline;
     }
 
@@ -35,7 +50,7 @@
     }
 
     &.lkl-selected > .lkl-key {
-      color: var(--color-border-focus);
+      color: var(--color-info);
       font-weight: var(--bold);
     }
 

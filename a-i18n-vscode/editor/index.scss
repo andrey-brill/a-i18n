@@ -5,13 +5,17 @@
 @import './src/Dropdown.scss';
 @import './src/Key.scss';
 @import './src/Actions.scss';
+@import './src/ActionModals.scss';
 @import './src/Translation.scss';
 @import './src/Translations.scss';
 @import './src/Textarea.scss';
+@import './src/KeysLists.scss';
 @import './src/PanelTranslations.scss';
-@import './src/KeysList.scss';
 @import './src/PanelKeys.scss';
+@import './src/PanelChanges.scss';
 @import './src/Input.scss';
+@import './src/CheckBox.scss';
+@import './src/KeyStateTag.scss';
 @import './src/utils/Space.scss';
 @import './src/utils/ResizablePlanes.scss';
 @import './src/utils/Overlay.scss';
@@ -56,7 +60,9 @@
   --color-border: var(--vscode-input-background);
   --color-border-focus: var(--vscode-focusBorder);
 
+  --color-info: var(--vscode-focusBorder);
   --color-success: var(--vscode-extensionIcon-preReleaseForeground);
+  --color-warning: var(--vscode-editorWarning-foreground);
   --color-danger: var(--vscode-editorError-foreground);
   --color-background: var(--vscode-editor-background);
 

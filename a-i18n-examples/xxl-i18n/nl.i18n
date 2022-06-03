@@ -21932,7 +21932,7 @@
 /operator_update_armature_motion_paths=
 -operator_update_armature_motion_paths=
 /operator_update_bone_paths=Operator
-+operator_update_bone_paths=Update Paden van Botten
++operator_update_bone_paths=State Paden van Botten
 /operator_update_branches=
 -operator_update_branches=
 /operator_update_custom_vr_landmark=
@@ -21950,7 +21950,7 @@
 /operator_update_object_paths=
 -operator_update_object_paths=
 /operator_update_paths=Operator
--operator_update_paths=Update Paden
+-operator_update_paths=State Paden
 /operator_update_range_from_scene=
 -operator_update_range_from_scene=
 /operator_update_reports_display=

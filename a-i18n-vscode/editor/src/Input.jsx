@@ -51,6 +51,10 @@ export const Input = ({ initialValue = '', placeholder, action, actionHighlighte
 
 export class InputConnector {
 
+  constructor() {
+    this.keyDown = {};
+  }
+
   onChange = (v) => {
     this.handleChange(v);
   };
@@ -73,7 +77,12 @@ export class InputConnector {
   handleClick() {
   }
 
-  handleKeyDown() {
+  handleKeyDown(e) {
+    const handler = this.keyDown[e.key];
+    if (handler) {
+      e.preventDefault();
+      handler(e);
+    }
   }
 
   handleFocus() {

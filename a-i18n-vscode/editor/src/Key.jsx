@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
-import { Action, KeyState } from '../../core/constants.js';
+import { KeyState } from '../../core/constants.js';
 import { ActionsKey } from './ActionsKey.jsx';
-import { Dropdown } from './Dropdown.jsx';
+import { KeyStateTag } from './KeyStateTag.jsx';
+import { TranslationsHeader } from './TranslationsHeader';
 
 export const Key = ({ selectedKey, selectedState }) => {
 
@@ -12,11 +13,12 @@ export const Key = ({ selectedKey, selectedState }) => {
         <label><span>l</span><span>o</span><span>c</span><span>a</span><span>l</span><span>e</span></label>
       </div>
       <div className='lk-value'>
-        <span>{selectedKey}</span>
+        <span className='lk-key'>{selectedKey}</span>
+        <KeyStateTag state={selectedState}/>
         {selectedState !== KeyState.Deleted && <ActionsKey value={selectedKey}/>}
       </div>
       <div>
-        <Dropdown title="Translations" right={true} actions={[Action.PinLocales]} />
+        {selectedState !== KeyState.Deleted && <TranslationsHeader/>}
       </div>
     </div>
   );

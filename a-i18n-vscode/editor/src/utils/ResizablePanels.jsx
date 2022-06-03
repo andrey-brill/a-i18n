@@ -27,8 +27,10 @@ export class ResizablePanels extends Component {
     this.saveSize = simpleDebounce(() => {
 
       if (this.state.panelsSize && this.props.stateKey) {
-        VsCode.post(Action.UpdateWorkspaceState, {
-          [this.props.stateKey]: this.state.panelsSize
+        VsCode.post(Action.Preference, {
+          key: this.props.stateKey,
+          value: this.state.panelsSize,
+          state: false
         });
       }
 

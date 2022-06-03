@@ -1,0 +1,29 @@
+
+.g-key-state-tag {
+
+  border: var(--border-width) solid;
+  border-radius: var(--border-radius);
+  text-transform: uppercase;
+  font-weight: var(--bold);
+  padding: 0.1em 0.5em;
+
+  &.g-color-original {
+    display: none !important;
+  }
+}
+
+
+.g-color-new {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.g-color-deleted {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.g-color-changed {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}

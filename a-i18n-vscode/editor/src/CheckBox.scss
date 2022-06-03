@@ -1,0 +1,15 @@
+
+.g-check-box {
+
+  display: inline-flex;
+  white-space: nowrap;
+  cursor: pointer;
+
+  > .g-icon + span {
+    margin-left: var(--p-sm);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

@@ -1,28 +1,53 @@
 
 import React from 'react';
+import { unsafeValue } from '../../../a-i18n-core-js/index.js';
+import { Action, Preferences } from '../../core/constants.js';
+import { useContextState } from './State.jsx';
 
 import { Translation } from './Translation.jsx';
+import { unsafeDiff } from './TranslationDiff.jsx';
+import { orderByLocalesOrder } from './utils/LocalesOrder.js';
+import { VsCode } from './utils/VsCode.js';
 
-const onChange = (t) => {
-  console.log('onChange t', t);
+
+
+function onCopy (e) {
+  const selection = document.getSelection();
+  const value = unsafeValue(unsafeDiff((selection || '').toString()));
+  event.clipboardData.setData('text/plain', value);
+  e.preventDefault();
 }
 
-const current = {
-  value: 'Hello, new world! ',
-  approved: false,
-  comment: 'Some comment!'
-};
+function getCurrent(locale, selectedCurrent) {
 
-const previous = {
-  value: 'Hello, new world!',
-  approved: true,
-  comment: 'Some comment!'
-};
+  const current = selectedCurrent[locale];
+  if (current) return current;
 
-export const Translations = () => (
-  <div className='g-translations'>
-    <Translation locale={'en'} current={current} previous={previous} onChange={onChange}/>
-    <Translation locale={'en-US'} current={current} previous={previous} onChange={onChange}/>
-    <Translation locale={'uk'} current={current} previous={previous} onChange={onChange}/>
-  </div>
-);
+  return {
+    locale,
+    value: '',
+    approved: false
+  }
+}
+
+export const Translations = ({ selectedKey, selectedCurrent, selectedPrevious }) => {
+
+  const { preferences } = useContextState();
+
+  const locales = orderByLocalesOrder(Object.keys(selectedCurrent), preferences[Preferences.LocalesOrder]);
+
+  const onChange = (translation) => {
+    translation.key = selectedKey;
+    VsCode.post(Action.ApplyChange, { translation });
+  }
+
+  return (
+    <div className='g-translations' onCopy={onCopy}>
+      {
+        locales.map(locale => (
+          <Translation key={locale} locale={locale} current={getCurrent(locale, selectedCurrent)} previous={selectedPrevious[locale]} onChange={onChange}/>
+        ))
+      }
+    </div>
+  )
+};

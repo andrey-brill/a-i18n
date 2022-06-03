@@ -1,0 +1,40 @@
+
+.g-action-modal {
+
+  background: var(--color-background);
+  border: var(--border-radius) solid var(--color-border);
+  border-radius: var(--border-radius);
+
+  width: 50%;
+  min-width: 500px;
+  z-index: 10;
+
+  padding: var(--p-lg);
+  padding-top: 0;
+
+  > .lam-title {
+    padding: var(--p-md) 0;
+    font-weight: var(--bold);
+    text-transform: uppercase;
+  }
+
+  > .lam-current {
+    padding-bottom: var(--p-md);
+    color: var(--color-disabled);
+
+    > span {
+      text-transform: uppercase;
+      font-weight: 300;
+      font-size: 80%;
+      padding-right: var(--p-md);
+    }
+  }
+
+  > .lam-error {
+    padding-top: var(--p-xxs);
+    display: inline-block;
+    color: var(--color-danger);
+    font-weight: var(--bold);
+  }
+
+}

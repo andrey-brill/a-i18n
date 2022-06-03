@@ -1,7 +1,7 @@
 import vscode, { Uri } from 'vscode';
 
 import { TypeDirectory, TypeFile } from '../../../../a-i18n-core-js/index.js';
-import { toFileName$ } from '../Utils.js';
+import { toFileName } from '../Utils.js';
 
 
 const fs = vscode.workspace.fs;
@@ -25,7 +25,7 @@ const decoder = new TextDecoder();
 
 export const FS = {
 
-  rootPath$: (rootPath) => rootPath,
+  rootPath: (rootPath) => rootPath,
   delete: (path) => fs.delete(Uri.parse(path), { recursive: true }),
 
   readFile: (path) => fs.readFile(Uri.parse(path)).then(buffer => decoder.decode(buffer)),
@@ -37,15 +37,15 @@ export const FS = {
   existDirectory: (path) => exists(path, TypeDirectory),
   existFile: (path) => exists(path, TypeFile),
 
-  watch$: (path, listener) => {
+  watch: (path, listener) => {
 
     const watcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(Uri.parse(path), '*')
     );
 
-    watcher.onDidChange(uri => listener(toFileName$(uri)));
-    watcher.onDidCreate(uri => listener(toFileName$(uri)));
-    watcher.onDidDelete(uri => listener(toFileName$(uri)));
+    watcher.onDidChange(uri => listener(toFileName(uri)));
+    watcher.onDidCreate(uri => listener(toFileName(uri)));
+    watcher.onDidDelete(uri => listener(toFileName(uri)));
 
     return () => {
       watcher.dispose();

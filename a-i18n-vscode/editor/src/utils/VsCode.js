@@ -12,28 +12,8 @@ class VsCodeApi {
 
   post(action, data = {}) {
     data[ActionProperty] = action;
-    console.log(`[POST] ${action}`, data);
     this.vscode.postMessage(data);
   }
-
-  // getStateKey(key, defaultValue) {
-
-  //   const state = this.vscode.getState();
-
-  //   console.log('getStateKey', state);
-  //   if (state && state[key]) {
-  //     return state[key];
-  //   }
-
-  //   return defaultValue;
-  // }
-
-  // setStateKey(key, value) {
-  //   const state = this.vscode.getState() || {};
-  //   state[key] = value;
-  //   console.log('setStateKey', state);
-  //   this.vscode.setState(state);
-  // }
 
 }
 

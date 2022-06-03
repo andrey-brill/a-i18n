@@ -63,6 +63,16 @@
           "when": "!explorerResourceIsFolder && resourceFilename =~ /i18n$/i"
         }
       ]
+    },
+    "configuration": {
+      "title": "A-i18n",
+      "properties": {
+        "a-i18n-vscode.LocalesOrder": {
+          "default": "en en-GB en-US",
+          "type": "string",
+          "description": "Locales' order in the translation's editor (space-separated, example: 'en en-GB en-US')"
+        }
+      }
     }
   },
   "devDependencies": {
