@@ -22,7 +22,7 @@ export const PanelChanges = ({ className }) => {
   return (
     <div className={`g-panel-changes ${className}`}>
 
-      <Dropdown title="Changes" actions={[Action.RevertChanges]} />
+      <Dropdown title="Changes" actions={[Action.RevertAllChanges]} onClick={onClick}/>
       <PanelChangesList className="lpc-keys-list" changedKeys={changedKeys} selectedKey={selectedKey}/>
 
       <div className='lpc-bar' onClick={onClick}>

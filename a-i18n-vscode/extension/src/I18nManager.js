@@ -7,41 +7,18 @@ import { buildFK, strNotEmpty } from './i18n/I18n.js';
 import editorJs from '../../editor/lib/editor.dist.js';
 import editorHtml from '../../editor/lib/editor.html';
 import icon from '../svg/page-icon.svg';
-import { KeyState, Action, ActionProperty, Extension, Preferences, workspaceKey } from '../../core/constants.js';
+import { Action, ActionProperty, Extension, Preferences, workspaceKey } from '../../core/constants.js';
 
 
 
 const DefaultUI = {
   query: '',
-  selectedKey: null
+  selectedKey: null,
+  selectedForce: false // force selected key translations to hard update on State change
 };
 
 const KeysLimit = 50;
 
-function resolveKeyState (key, locales, keys, changes) {
-
-  if (!changes.keys.has(key)) {
-    return keys.has(key) ? KeyState.Original : KeyState.Deleted;
-  }
-
-  const states = [];
-  for (const locale of locales) {
-
-    const fk = buildFK(locale, key);
-    const before = changes.before[fk];
-    const after = changes.after[fk];
-
-    if (before && !after) {
-      states.push(KeyState.Deleted);
-    } else if (after && !before) {
-      states.push(KeyState.New);
-    } else {
-      return KeyState.Changed;
-    }
-  }
-
-  return states[0];
-}
 
 function getConfiguration() {
   return vscode.workspace.getConfiguration(Extension);
@@ -71,7 +48,7 @@ function buildPreferences(context) {
 
 function buildState(previousState = {}, ui, i18n, context) {
 
-  const { keys, origins, locales, changes, loaded, error } = i18n.state;
+  const { keys, locales, changes, loaded, error } = i18n.state;
 
   const state = Object.assign({ loaded, error }, ui);
 
@@ -84,43 +61,14 @@ function buildState(previousState = {}, ui, i18n, context) {
 
   const changedKeys = {};
   for (const key of changes.keys) {
-    changedKeys[key] = resolveKeyState(key, locales, keys, changes);
+    changedKeys[key] = i18n.getKeyState(key);
   }
   state.changedKeys = changedKeys;
 
   if (state.selectedKey) {
-
-    state.selectedState = resolveKeyState(state.selectedKey, locales, keys, changes);
-
-    let previous = null;
-    let current = null;
-
-    switch (state.selectedState) {
-      case KeyState.Original:
-        current = origins;
-        break;
-      case KeyState.New:
-        current = changes.after;
-        break;
-      case KeyState.Changed:
-        previous = changes.before;
-        current = changes.after;
-        break;
-    }
-
-    const selectedPrevious = {};
-    const selectedCurrent = {};
-
-    for (const locale of locales) {
-
-      const fk = buildFK(locale, state.selectedKey);
-      selectedPrevious[locale] = previous ? previous[fk] : null;
-      selectedCurrent[locale] = current ? current[fk] : null;
-    }
-
-    state.selectedCurrent = selectedCurrent;
-    state.selectedPrevious = selectedPrevious;
-
+    state.selectedInfo = i18n.getKeyInfo(state.selectedKey);
+  } else {
+    delete state.selectedInfo;
   }
 
   let keysToRecalculate = [];
@@ -249,6 +197,37 @@ export class I18nManager extends Disposable {
           .addKey({ key: data.key })
           .then(() => this._handleAction(Action.SelectKey, data));
 
+      case Action.CopyKey:
+        return this.i18n
+          .copyKey({ fromKey: data.fromKey, toKey: data.toKey })
+          .then(() => this._postState());
+
+      case Action.RenameKey:
+        return this.i18n
+          .copyKey({ fromKey: data.fromKey, toKey: data.toKey })
+          .then(() => deleteKey({ key: data.fromKey }))
+          .then(() => this._postState());
+
+      case Action.ApplyChange:
+        return this.i18n
+          .applyChange(data.translation)
+          .then(() => this._postState());
+
+      case Action.RevertAllChanges:
+      case Action.RevertChanges:
+        return this.i18n
+          .revertChanges({ key: data.key, locale: data.locale })
+          .then(() => {
+            this.ui.selectedForce = true;
+            this._postState();
+            this.ui.selectedForce = false;
+          });
+
+      case Action.DeleteKey:
+        return this.i18n
+          .deleteKey({ key: data.key })
+          .then(() => this._postState());
+
       case Action.Preference:
 
         const { key, value, global = false, state = true } = data;
@@ -265,20 +244,22 @@ export class I18nManager extends Disposable {
           if (state) this._postState();
         });
 
-      case Action.ApplyChange:
-        return this.i18n.applyChange(data.translation).then(() => {
-          this._postState();
-        });
 
       case Action.AutoExport:
         this.i18n.autoExport = data.value;
-        return this.i18n.saveConfig().then(() => this._postState());
+        return this.i18n
+          .saveConfig()
+          .then(() => this._postState());
 
       case Action.SaveAndExport:
       case Action.Save:
-        return this.i18n.save().then(() => this._postState());
+        return this.i18n
+          .save()
+          .then(() => this._postState());
       case Action.Export:
         return this.i18n.export();
+      default:
+        throw new Error('Unknown action: ' + action);
     }
   }
 

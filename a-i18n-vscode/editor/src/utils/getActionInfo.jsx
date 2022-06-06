@@ -30,8 +30,8 @@ export function getActionInfo(action) {
     case Action.RenameKey: return a(<IconEdit />, 'Rename', 'Rename key');
     case Action.DeleteKey: return a(<IconTrash />, 'Delete', 'Delete key');
 
-    case Action.RevertChange: return a(<IconRevert />, 'Revert change');
-    case Action.RevertChanges: return a(<IconRevert />, 'Revert all changes');
+    case Action.RevertChanges: return a(<IconRevert />, 'Revert changes');
+    case Action.RevertAllChanges: return a(<IconRevert />, 'Revert all changes');
 
     case Action.AddComment: return a(<IconAddComment />, 'Add comment');
     case Action.RemoveComment: return a(<IconRemoveComment />, 'Remove comment');

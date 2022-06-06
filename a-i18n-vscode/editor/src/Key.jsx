@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { KeyState } from '../../core/constants.js';
+import { KeyState } from '../../../a-i18n-core-js/index.js';
 import { ActionsKey } from './ActionsKey.jsx';
 import { KeyStateTag } from './KeyStateTag.jsx';
 import { TranslationsHeader } from './TranslationsHeader';
@@ -15,10 +15,10 @@ export const Key = ({ selectedKey, selectedState }) => {
       <div className='lk-value'>
         <span className='lk-key'>{selectedKey}</span>
         <KeyStateTag state={selectedState}/>
-        {selectedState !== KeyState.Deleted && <ActionsKey value={selectedKey}/>}
+        {selectedState !== KeyState.Missing && <ActionsKey value={selectedKey}/>}
       </div>
       <div>
-        {selectedState !== KeyState.Deleted && <TranslationsHeader/>}
+        {selectedState !== KeyState.Missing && <TranslationsHeader/>}
       </div>
     </div>
   );

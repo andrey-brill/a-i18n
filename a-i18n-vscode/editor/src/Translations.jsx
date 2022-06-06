@@ -1,14 +1,12 @@
 
-import React from 'react';
-import { unsafeValue } from '../../../a-i18n-core-js/index.js';
-import { Action, Preferences } from '../../core/constants.js';
-import { useContextState } from './State.jsx';
+import React, { createRef } from 'react';
 
+import { buildFK, unsafeValue } from '../../../a-i18n-core-js/index.js';
+import { Preferences } from '../../core/constants.js';
+import { useContextState } from './State.jsx';
 import { Translation } from './Translation.jsx';
 import { unsafeDiff } from './TranslationDiff.jsx';
 import { orderByLocalesOrder } from './utils/LocalesOrder.js';
-import { VsCode } from './utils/VsCode.js';
-
 
 
 function onCopy (e) {
@@ -18,34 +16,22 @@ function onCopy (e) {
   e.preventDefault();
 }
 
-function getCurrent(locale, selectedCurrent) {
+export const Translations = ({ deleted, selectedCurrent, selectedPrevious }) => {
 
-  const current = selectedCurrent[locale];
-  if (current) return current;
-
-  return {
-    locale,
-    value: '',
-    approved: false
-  }
-}
-
-export const Translations = ({ selectedKey, selectedCurrent, selectedPrevious }) => {
-
-  const { preferences } = useContextState();
+  const { selectedKey, preferences, selectedForce } = useContextState();
 
   const locales = orderByLocalesOrder(Object.keys(selectedCurrent), preferences[Preferences.LocalesOrder]);
 
-  const onChange = (translation) => {
-    translation.key = selectedKey;
-    VsCode.post(Action.ApplyChange, { translation });
+  const updater = createRef();
+  if (selectedForce || !updater.current) {
+    updater.current = (updater.current || 1) + 1;
   }
 
   return (
     <div className='g-translations' onCopy={onCopy}>
       {
         locales.map(locale => (
-          <Translation key={locale} locale={locale} current={getCurrent(locale, selectedCurrent)} previous={selectedPrevious[locale]} onChange={onChange}/>
+          <Translation key={buildFK(locale, selectedKey) + '#' + updater.current} selectedKey={selectedKey} deleted={deleted} locale={locale} current={selectedCurrent[locale]} previous={selectedPrevious[locale]}/>
         ))
       }
     </div>

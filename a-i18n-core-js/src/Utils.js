@@ -55,7 +55,7 @@ export const strNotEmpty = (str) => str && str.trim().length > 0;
 
 export const boolCompare = (a, b) => (!!a) === (!!b);
 
-export const tCompare = (a, b) => a && b && strCompare(a.value, b.value) && boolCompare(a.approved, b.approved) && strCompare(a.comment, b.comment);
+export const tCompare = (a, b) => (a === undefined && b === undefined) || (a && b && strCompare(a.value, b.value) && boolCompare(a.approved, b.approved) && strCompare(a.comment, b.comment));
 
 export const hasComment = (t) => t && t.comment && t.comment.length > 0;
 

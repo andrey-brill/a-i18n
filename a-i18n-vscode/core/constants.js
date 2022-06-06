@@ -1,3 +1,4 @@
+import { KeyState } from '../../a-i18n-core-js/index.js';
 
 export const Extension = 'a-i18n-vscode';
 
@@ -17,8 +18,8 @@ export const Action = {
   RenameKey: 'RenameKey',
   DeleteKey: 'DeleteKey',
 
-  RevertChange: 'RevertChange',
   RevertChanges: 'RevertChanges',
+  RevertAllChanges: 'RevertAllChanges',
 
   AddComment: 'AddComment',
   RemoveComment: 'RemoveComment',
@@ -42,18 +43,12 @@ export const Action = {
   SaveAndExport: 'SaveAndExport'
 };
 
-export const KeyState = {
-  Original: 'Original',
-  New: 'New',
-  Changed: 'Changed',
-  Deleted: 'Deleted'
-}
-
 export const KeyStateIcon = {
-  Original: '=',
-  New: '+',
-  Changed: '±',
-  Deleted: '-'
+  [KeyState.Original]: '=',
+  [KeyState.New]: '+',
+  [KeyState.Changed]: '±',
+  [KeyState.Deleted]: '-',
+  [KeyState.Missing]: '?'
 }
 
 export const KeyStateOrder = [ KeyState.New, KeyState.Changed, KeyState.Deleted ];

@@ -1,7 +1,7 @@
 
 import { ErrorCodes, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, NotUniqueI18nFilesError, InvalidKeyError, NoI18nJsFileError } from './Errors.js';
 import { simpleDebounce, detectLocale, isI18nFile, isI18nJsFile, getTime, unsafeValue, commentLine, valueLine, deleteLine, splitFK, buildFK, toBacklog, toPromise, strCompare, boolCompare, tCompare } from './Utils.js';
-import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, AutoExport, ManualExport, TypeFile, DefaultI18n } from './Constants.js';
+import { CommentLine, ApprovedLine, NotApprovedLine, DeleteKeyLine, KeyValueSeparator, AutoExport, ManualExport, TypeFile, DefaultI18n, KeyState, EmptyT } from './Constants.js';
 
 import { SortedArray } from './SortedArray.js';
 import { ConfigDefaults } from './ConfigDefaults.js';
@@ -37,18 +37,15 @@ export class Ai18n {
 
   _actions() {
     return [
-      this.addFile,
-      this.addKey,
       this.connect,
-      this.copyKey,
-      this.deleteFile,
-      this.deleteKey,
-      this.export,
       this.load,
-      this.renameKey,
-      this.revertChanges,
       this.save,
-      this.applyChange
+      this.export,
+      this.addKey,
+      this.copyKey,
+      this.deleteKey,
+      this.applyChange,
+      this.revertChanges
     ]
   }
 
@@ -185,10 +182,6 @@ export class Ai18n {
 
   getT(fullKey) {
     return this.state.changes.fullKeys.has(fullKey) ? this.state.changes.after[fullKey] : this.state.origins[fullKey];
-  }
-
-  _copyT(fullKey, newT) {
-    return Object.assign({}, this.getT(fullKey), newT);
   }
 
   _resetAllUpdates() {
@@ -360,6 +353,61 @@ export class Ai18n {
 
   }
 
+  getKeyState(key) {
+
+    const { keys, locales, changes } = this.state;
+
+    if (!keys.has(key)) {
+      return changes.keys.has(key) ? KeyState.Deleted : KeyState.Missing;
+    }
+
+    if (!changes.keys.has(key)) {
+      return KeyState.Original;
+    }
+
+    for (const locale of locales) {
+
+      const fk = buildFK(locale, key);
+      if (changes.before[fk]) return KeyState.Changed;
+    }
+
+    return KeyState.New;
+  }
+
+  getKeyInfo(key) {
+
+    const { locales, changes, origins } = this.state;
+
+    const state = this.getKeyState(key);
+
+    if (state === KeyState.Missing) {
+      return { state };
+    }
+
+    const previous = {}, current = {};
+
+    for (const locale of locales) {
+
+      const fk = buildFK(locale, key);
+
+      const before = changes.before[fk];
+      const after = changes.after[fk];
+
+      if (before || after) {
+        previous[locale] = before;
+        current[locale] = after || EmptyT;
+      } else {
+        previous[locale] = current[locale] = origins[fk] || EmptyT;
+      }
+    }
+
+    return {
+      state,
+      previous,
+      current
+    }
+  }
+
   connect(options = {}) {
     return this._fs.validateDirectory()
       .then(() => {
@@ -441,7 +489,7 @@ export class Ai18n {
 
         for (const file of files) {
           const fullKey = buildFK(file.locale, key);
-          const t = this.state.origins[fullKey] || {};
+          const t = this.state.origins[fullKey] || EmptyT;
           hasComment = hasComment || (t.comment && t.comment.length > 0);
           hasValue = hasValue || (t.value && t.value.length > 0);
           file.t = t;
@@ -593,60 +641,6 @@ export class Ai18n {
       .catch(e => this._config.exportHandler(e, true) && false)
   }
 
-  addFile(options = {}) {
-    return toPromise(() => {
-
-      this._validateAction(options);
-
-      if (this.state.changes.keys.size > 0) {
-        throw new UnappliedChangesError();
-      }
-
-      const { fileName = '' } = options;
-      if (fileName.length <= 0) {
-        throw new I18nError(ErrorCodes.InvalidFile, `File name can't be empty`);
-      }
-
-      const file = this._nameToFile(fileName)
-      if (this.files[fileName] || this.locales.indexOf(file.locale) >= 0) {
-        return true;
-      }
-
-      const files = Object.values(this.state.files);
-      files.push(file);
-
-      this._setFiles(files);
-      return this.save();
-    });
-  }
-
-  deleteFile(options = {}) {
-    return toPromise(() => {
-
-      this._validateAction(options);
-
-      const { fileName = '' } = options;
-
-      if (this.state.changes.keys.size > 0) {
-        throw new UnappliedChangesError();
-      }
-
-      const file = this.state.files[fileName];
-      if (!file) {
-        return true;
-      }
-
-      return this._fs
-        .delete(file.path)
-        .then(() => this._fs.delete(toBacklog(file.path)))
-        .then(() => {
-          delete this.state.files[fileName];
-          this._setFiles(Object.values(this.state.files));
-          return true;
-        });
-    })
-  }
-
   addKey(options = {}) {
     return toPromise(() => {
 
@@ -661,8 +655,8 @@ export class Ai18n {
       }
 
       this.state.keys.insert(key, sortedIndex);
-      const changes = this.state.locales.map(locale => this.applyChange({ locale, key, value: '', force: true }));
-      return Promise.all(changes);
+      const changes = this.state.locales.map(locale => this._appendChanges(locale, valueLine(EmptyT.approved, key, EmptyT.value)));
+      return this._optimizeChanges(changes);
     });
   }
 
@@ -692,30 +686,24 @@ export class Ai18n {
       this.state.keys.insert(toKey, sortedIndex);
 
       const changes = this.state.locales.map(locale => {
+
         const fullKey = buildFK(locale, fromKey);
-        const newT = this._copyT(fullKey, { locale, key: toKey });
-        return this.applyChange(newT);
+        const t = this.getT(fullKey);
+
+        if (t) {
+          let changes = [];
+          if (t.comment) {
+            changes.push(commentLine(toKey, t.comment))
+          }
+          changes.push(valueLine(t.approved, toKey, t.value))
+          return this._appendChanges(locale, changes.join('\n'));
+        } else {
+          return this._appendChanges(locale, valueLine(false, toKey, ''));
+        }
+
       });
 
-      return Promise.all(changes);
-    });
-  }
-
-  renameKey(options = {}) {
-    return toPromise(() => {
-
-      this._validateAction(options);
-
-      const { fromKey, toKey } = options;
-      if (fromKey === toKey) {
-        return;
-      }
-
-      this._validateKey(fromKey);
-      this._validateKey(toKey);
-
-      return this.copyKey({ fromKey, toKey })
-        .then(() => this.deleteKey({ fromKey }));
+      return this._optimizeChanges(changes);
     });
   }
 
@@ -740,7 +728,7 @@ export class Ai18n {
 
       this._validateAction(options);
 
-      const { locale, key, value, comment, approved = false, force = false } = options;
+      const { locale, key, value, comment, approved = false } = options;
       this._validateKey(key);
 
       const current = this.getT(buildFK(locale, key)) || {};
@@ -748,16 +736,16 @@ export class Ai18n {
       const valueCompare = strCompare(value, current.value) && boolCompare(approved, current.approved);
       const commentCompare = strCompare(comment, current.comment);
 
-      if (valueCompare && commentCompare && !force) {
+      if (valueCompare && commentCompare) {
         return true;
       }
 
       let changes = [];
-      if (!commentCompare || (force && (comment !== undefined && comment !== null))) {
+      if (!commentCompare) {
         changes.push(commentLine(key, comment))
       }
 
-      if (!valueCompare || force) {
+      if (!valueCompare) {
         changes.push(valueLine(approved, key, value))
       }
 
@@ -786,12 +774,12 @@ export class Ai18n {
 
         const [localeFK, keyFK] = splitFK(fullKey);
 
-        const sameFileName = locale === localeFK;
+        const sameLocale = locale === localeFK;
         const sameKey = key === keyFK;
 
         if (
-          (locale && key && (!sameFileName || !sameKey)) ||
-          (locale && !key && !sameFileName) ||
+          (locale && key && (!sameLocale || !sameKey)) ||
+          (locale && !key && !sameLocale) ||
           (!locale && key && !sameKey)
         ) {
           return;

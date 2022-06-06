@@ -27,3 +27,16 @@ export const RootDirectory = './';
 
 export const TypeFile = 1;
 export const TypeDirectory = 2;
+
+export const KeyState = {
+  New: 'New',
+  Changed: 'Changed',
+  Deleted: 'Deleted',
+  Original: 'Original',
+  Missing: 'Missing'
+}
+
+export const EmptyT = Object.freeze({
+  approved: false,
+  value: ''
+})
