@@ -95,7 +95,7 @@ function buildState(previousState = {}, ui, i18n, context) {
   } else if (previousState) {
     state.keysInfoReachLimit = previousState.keysInfoReachLimit;
     state.keysInfo = previousState.keysInfo;
-    keysToRecalculate = state.selectedKey ? [state.selectedKey] : keysToRecalculate;
+    keysToRecalculate = state.selectedKey && state.keysInfo && state.keysInfo[state.selectedKey] ? [state.selectedKey] : keysToRecalculate;
   }
 
 
@@ -170,6 +170,10 @@ export class I18nManager extends Disposable {
     this.panel = panel;
   }
 
+  _selectKey(key = '') {
+    this.ui.selectedKey = key;
+    this._postState();
+  }
 
   _handleAction(action, data) {
 
@@ -189,44 +193,35 @@ export class I18nManager extends Disposable {
         });
 
       case Action.SelectKey:
-        this.ui.selectedKey = data.key;
-        return this._postState();
+        return this._selectKey(data.key);
 
       case Action.AddKey:
         return this.i18n
           .addKey({ key: data.key })
-          .then(() => this._handleAction(Action.SelectKey, data));
+          .then(() => this._selectKey(data.key));
 
       case Action.CopyKey:
         return this.i18n
           .copyKey({ fromKey: data.fromKey, toKey: data.toKey })
-          .then(() => this._postState());
+          .then(() => this._selectKey(data.toKey));
 
       case Action.RenameKey:
         return this.i18n
           .copyKey({ fromKey: data.fromKey, toKey: data.toKey })
-          .then(() => deleteKey({ key: data.fromKey }))
-          .then(() => this._postState());
+          .then(() => this.i18n.deleteKey({ key: data.fromKey }))
+          .then(() => this._selectKey(data.toKey));
 
       case Action.ApplyChange:
-        return this.i18n
-          .applyChange(data.translation)
-          .then(() => this._postState());
+        return this.i18n.applyChange(data.translation);
 
       case Action.RevertAllChanges:
       case Action.RevertChanges:
-        return this.i18n
-          .revertChanges({ key: data.key, locale: data.locale })
-          .then(() => {
-            this.ui.selectedForce = true;
-            this._postState();
-            this.ui.selectedForce = false;
-          });
+        this.ui.selectedForce = true;
+        return this.i18n.revertChanges({ key: data.key, locale: data.locale });
 
       case Action.DeleteKey:
-        return this.i18n
-          .deleteKey({ key: data.key })
-          .then(() => this._postState());
+        this.ui.selectedForce = data.key === this.ui.selectedKey;
+        return this.i18n.deleteKey({ key: data.key });
 
       case Action.Preference:
 
@@ -274,6 +269,7 @@ export class I18nManager extends Disposable {
       const nextState = buildState(this.previousState, this.ui, this.i18n, this.context);
       this._post(Action.State, nextState);
       this.previousState = nextState;
+      this.ui.selectedForce = false;
     }
   }
 
@@ -298,7 +294,9 @@ export class I18nManager extends Disposable {
       throw new Error('WTF?');
     }
 
-    return this.i18n.connect({ onChange: () => this._postState() })
+    return this.i18n.connect({ onChange: () => {
+      this._postState();
+    }})
       .then(unsubscribe => {
         if (unsubscribe) { // can be undefined on catch error
           this.dis(unsubscribe);

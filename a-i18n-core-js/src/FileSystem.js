@@ -3,7 +3,7 @@
 
 import { Encoding, RootDirectory } from './Constants.js';
 import { InvalidDirectoryError, InvalidPathError } from './Errors.js';
-import { directoryFrom, endWithSlash, toPromise } from './Utils.js';
+import { directoryFrom, endWithoutSlash, endWithSlash, toPromise } from './Utils.js';
 
 
 function validateRelativePath(path) {
@@ -29,7 +29,12 @@ export class FileSystem {
     this._rootPath = endWithSlash(this._fs.rootPath(config.rootPath));
   }
 
-  _resolvePath (path) {
+  _resolveFilePath (path) {
+    validateRelativePath(path);
+    return endWithoutSlash(this._rootPath + path.substring(RootDirectory.length));
+  }
+
+  _resolveDirPath (path) {
     validateRelativePath(path);
     return endWithSlash(this._rootPath + path.substring(RootDirectory.length));
   }
@@ -85,31 +90,41 @@ export class FileSystem {
 
   pathTo (fileName) { return this._directory + fileName; }
 
-  delete (path) { return this._fs.delete(this._resolvePath(path)) }
+  deleteFile (path) {
+    const rPath = this._resolveFilePath(path);
+    return this._fs.existFile(rPath)
+      .then(isExists => isExists ? this._fs.delete(rPath) : true);
+  }
+
+  deleteDirectory (path) {
+    const rPath = this._resolveDirPath(path);
+    return this._fs.existDirectory(rPath)
+      .then(isExists => isExists ? this._fs.delete(rPath) : true);
+  }
 
   readFile (path, options = { encoding : Encoding }) {
     return this.existFile(path).then(isExists => {
-      if (isExists) return this._fs.readFile(this._resolvePath(path), options);
+      if (isExists) return this._fs.readFile(this._resolveFilePath(path), options);
       return '';
     });
   }
 
-  writeFile (path, data = '', options = { encoding : Encoding }) { return this._fs.writeFile(this._resolvePath(path), data, options); }
+  writeFile (path, data = '', options = { encoding : Encoding }) { return this._fs.writeFile(this._resolveFilePath(path), data, options); }
 
   appendContent (path, content, options = { encoding : Encoding }) {
     return this.readFile(path, options)
       .then(contentNow => {
         const prefix = (contentNow.length === 0 || contentNow[contentNow.length - 1] === '\n') ? '' : '\n';
         const suffix = content[content.length - 1] === '\n' ? '' : '\n';
-        this.writeFile(path, contentNow + prefix + content + suffix, options);
+        return this.writeFile(path, contentNow + prefix + content + suffix, options);
       });
   }
 
-  readDirectory (path = this._directory) { return this._fs.readDirectory(this._resolvePath(path)); }
+  readDirectory (path = this._directory) { return this._fs.readDirectory(this._resolveDirPath(path)); }
 
-  existDirectory (path = this._directory) { return this._fs.existDirectory(this._resolvePath(path)); }
-  existFile (path) { return this._fs.existFile(this._resolvePath(path)); }
+  existDirectory (path = this._directory) { return this._fs.existDirectory(this._resolveDirPath(path)); }
+  existFile (path) { return this._fs.existFile(this._resolveFilePath(path)); }
 
-  watch (listener, path = this._directory) { return this._fs.watch(this._resolvePath(path), listener); }
+  watch (listener, path = this._directory) { return this._fs.watch(this._resolveDirPath(path), listener); }
 
 }

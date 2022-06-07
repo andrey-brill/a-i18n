@@ -17,7 +17,7 @@ const onAutoExport = (value) => {
 export const PanelChanges = ({ className }) => {
 
   const { autoExport, selectedKey, changedKeys } = useContextState();
-  const onClick = onAction(action => VsCode.post(action));
+  const onClick = action => VsCode.post(action);
 
   return (
     <div className={`g-panel-changes ${className}`}>
@@ -25,7 +25,7 @@ export const PanelChanges = ({ className }) => {
       <Dropdown title="Changes" actions={[Action.RevertAllChanges]} onClick={onClick}/>
       <PanelChangesList className="lpc-keys-list" changedKeys={changedKeys} selectedKey={selectedKey}/>
 
-      <div className='lpc-bar' onClick={onClick}>
+      <div className='lpc-bar' onClick={onAction(onClick)}>
         <CheckBox value={autoExport} setValue={onAutoExport} action={Action.AutoExport}/>
         { autoExport && <ActionButton className="lpc-save" action={Action.SaveAndExport}/> }
         { !autoExport && <ActionButton action={Action.Export} showTitle={false}/> }

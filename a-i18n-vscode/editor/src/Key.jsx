@@ -15,7 +15,7 @@ export const Key = ({ selectedKey, selectedState }) => {
       <div className='lk-value'>
         <span className='lk-key'>{selectedKey}</span>
         <KeyStateTag state={selectedState}/>
-        {selectedState !== KeyState.Missing && <ActionsKey value={selectedKey}/>}
+        {selectedState !== KeyState.Missing && <ActionsKey value={selectedKey} state={selectedState}/>}
       </div>
       <div>
         {selectedState !== KeyState.Missing && <TranslationsHeader/>}

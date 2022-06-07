@@ -113,13 +113,13 @@ export const Translation = ({ selectedKey, locale, deleted, current, previous })
       {
         !deleted &&
         <div className='lt-line lt-value'>
-          <span>{ t.approved ? <IconApprove/> : <IconCheckOff/> }</span>
+          <span id={t.approved ? Action.Disapprove : Action.Approve} onClick={onClick}>{ t.approved ? <IconApprove/> : <IconCheckOff/> }</span>
           <Textarea initialValue={t.value} setValue={updater.current.setValue}/>
         </div>
       }
       {
         previous &&
-        <TranslationDiff previous={previous.value} current={t.value} />
+        <TranslationDiff previous={previous.value} current={t.value} previousApproved={previous.approved} currentApproved={t.approved} />
       }
       {
         !deleted && showComment &&
@@ -127,6 +127,10 @@ export const Translation = ({ selectedKey, locale, deleted, current, previous })
           <span><IconComment /></span>
           <Textarea initialValue={t.comment} setValue={updater.current.setComment}/>
         </div>
+      }
+      {
+        !deleted && showComment && previous &&
+        <TranslationDiff previous={previous.comment} current={t.comment} />
       }
     </div>
   </div>;

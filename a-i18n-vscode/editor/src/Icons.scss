@@ -3,6 +3,7 @@
 
   height: var(--h-icon);
   user-select: none;
+  pointer-events: none; // important to handle clicks in the right way
 
   path {
     stroke-width: 4px;

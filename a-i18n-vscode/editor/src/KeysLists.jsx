@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useRef } from 'react';
 import { Action, KeyState, KeyStateIcon, KeyStateOrder } from '../../core/constants.js';
 import { onAction } from './Actions.jsx';
 import { ActionsKey } from './ActionsKey.jsx';
@@ -9,18 +9,31 @@ import { VsCode } from './utils/VsCode.js';
 
 const formatPercent = (v = 0) => Math.round(v * 100) + '%';
 
-const KeysListItem = ({ value, highlightedKey, selectedKey, onClick, state, children }) => (
-  <div className={`lkl-item ${(highlightedKey === value) ? 'lkl-highlighted' : ''} ${(selectedKey === value) ? 'lkl-selected' : ''}`}>
-    {children}
-    <div id={value} className="lkl-key" onClick={onClick}>
-      <div>{value}</div>
+const KeysListItem = ({ value, highlightedKey, selectedKey, onClick, state, children }) => {
+
+  const el = useRef();
+  const previousHighlighted = useRef();
+
+  const isHighlighted = highlightedKey === value;
+  if (el.current && previousHighlighted.current !== isHighlighted && isHighlighted) {
+    el.current.scrollIntoView(false);
+  }
+
+  previousHighlighted.current = isHighlighted;
+
+  return (
+    <div ref={el} className={`lkl-item ${isHighlighted ? 'lkl-highlighted' : ''} ${(selectedKey === value) ? 'lkl-selected' : ''}`}>
+      {children}
+      <div id={value} className="lkl-key" onClick={onClick}>
+        <div>{value}</div>
+      </div>
+      <div className="lkl-fill"></div>
+      <div>
+        <ActionsKey value={value} state={state}/>
+      </div>
     </div>
-    <div className="lkl-fill"></div>
-    <div>
-      <ActionsKey value={value} state={state}/>
-    </div>
-  </div>
-);
+  )
+};
 
 
 export const PanelKeysList = ({ className, keys, keysInfo = {}, changedKeys = {}, highlightedKey, selectedKey, keysInfoReachLimit = false }) => {

@@ -2,7 +2,7 @@
 export const CommentLine = '/';
 export const ApprovedLine = '+';
 export const NotApprovedLine = '-';
-export const DeleteKeyLine = '#';
+export const DeleteLine = '#';
 
 export const KeyValueSeparator = '=';
 export const FullKeySeparator = '='; // As key don't contains =, we can use '=' to split fullKey.

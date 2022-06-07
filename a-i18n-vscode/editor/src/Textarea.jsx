@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { safeValue, simpleDebounce, unsafeValue } from '../../../a-i18n-core-js/index.js';
 
+
 export const Textarea = ({ initialValue = '', setValue }) => {
 
   const ref = useRef();
@@ -25,6 +26,10 @@ export const Textarea = ({ initialValue = '', setValue }) => {
       },
 
       debounceSet: simpleDebounce(() => {
+
+        if (!ref.current) {
+          return;
+        }
 
         const value = safeValue(ref.current.value);
 

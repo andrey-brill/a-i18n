@@ -1,5 +1,5 @@
 
-import { ApprovedLine, BacklogI18n, CommentLine, DeleteKeyLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine } from './Constants.js';
+import { ApprovedLine, BacklogI18n, CommentLine, DeleteLine, FileNameRegExp, FullKeySeparator, I18n, I18nJs, KeyValueSeparator, NewLineSymbol, NewLineSymbolRegEx, NotApprovedLine } from './Constants.js';
 
 
 export const simpleDebounce = (callback, time) => {
@@ -42,7 +42,7 @@ export const unsafeValue = (value = '') => value.replace(NewLineSymbolRegEx, '\n
 
 export const commentLine = (key, comment) => CommentLine + key + KeyValueSeparator + safeValue(comment);
 export const valueLine = (approved, key, value) => (approved ? ApprovedLine : NotApprovedLine) + key + KeyValueSeparator + safeValue(value);
-export const deleteLine = (key) => DeleteKeyLine + key;
+export const deleteLine = (key) => DeleteLine + key;
 
 
 export const buildFK = (locale, key) => locale + FullKeySeparator + key;
@@ -63,8 +63,16 @@ export const endWithSlash = (path) => {
   if (!path || path.length === 0) {
     throw new Error('Empty path');
   }
-  return path.endsWith('/') ? path : (path.endsWith('\\') ? path.substring(0, path.length - 1) + '/' : path + '/');
+  return path.endsWith('/') ? path : (path.endsWith('\\') ? endWithSlash(path.substring(0, path.length - 1)) : path + '/');
 }
+
+export const endWithoutSlash = (path) => {
+  if (!path || path.length === 0) {
+    throw new Error('Empty path');
+  }
+  return path.endsWith('/') ? endWithoutSlash(path.substring(0, path.length - 1)) : path;
+}
+
 
 export const toPromise = (obj) => {
 

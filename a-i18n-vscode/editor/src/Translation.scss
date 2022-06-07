@@ -114,6 +114,10 @@ $border: var(--border-width) solid var(--color-border);
       > div, textarea {
         flex-grow: 1;
       }
+
+      &.lt-value > span:first-child {
+        cursor: pointer;
+      }
     }
 
     .lt-diff {
@@ -121,11 +125,7 @@ $border: var(--border-width) solid var(--color-border);
       color: var(--color-locale);
       margin-top: calc(-1 * var(--p-xxs));
 
-      .g-icon {
-        opacity: 0.4;
-      }
-
-      > div > span {
+      span {
 
         opacity: 0.4;
 

@@ -1,11 +1,10 @@
 
-import { CommentLine, ApprovedLine } from './Constants.js';
+import { CommentLine, ApprovedLine, DeleteLine } from './Constants.js';
 
 
 export function parseLines(content = '') {
 
-  content = content.trim();
-  if (content.length === 0) {
+  if (content.length === 0) { // don't use trim(), as it removes trailing space from text
     return [];
   }
 
@@ -16,7 +15,7 @@ export function parseLines(content = '') {
   let type = '';
   let key = '';
 
-  for (let i = 0; i < content.length; i++) {
+  for (let i = 0; i <= content.length; i++) {
 
     let current = content[i];
 
@@ -28,33 +27,20 @@ export function parseLines(content = '') {
           type = current;
         }
       } else {
-        if (current === '=') {
 
+        if (type === DeleteLine && (current === '\r' || current === '\n' || current === undefined)) {
+          key = content.substring(startIndex + 1, i);
+          startIndex = i + 1;
+          lines.push({ type, key });
+        } else if (current === '=') {
           key = content.substring(startIndex + 1, i);
           startIndex = i + 1;
           isKey = false;
-
-          if (content.length - 1 === i) {
-            if (type === CommentLine) {
-              lines.push({
-                type,
-                key,
-                comment: ''
-              });
-            } else {
-              lines.push({
-                type,
-                key,
-                value: '',
-                approved: type === ApprovedLine
-              });
-            }
-          }
         }
       }
 
     } else {
-      if (content[i] === '\r' || content[i] === '\n' || (content.length - 1 === i)) {
+      if (current === '\r' || current === '\n' || current === undefined) {
 
         const value = content.substring(startIndex, i);
 
@@ -79,6 +65,10 @@ export function parseLines(content = '') {
 
     }
 
+  }
+
+  if (startIndex < content.length) {
+    throw new Error('Not fully parsed content: ' + content);
   }
 
   return lines;

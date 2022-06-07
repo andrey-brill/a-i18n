@@ -1,5 +1,5 @@
 
-import React, { createRef } from 'react';
+import React, { useRef } from 'react';
 
 import { buildFK, unsafeValue } from '../../../a-i18n-core-js/index.js';
 import { Preferences } from '../../core/constants.js';
@@ -22,17 +22,22 @@ export const Translations = ({ deleted, selectedCurrent, selectedPrevious }) => 
 
   const locales = orderByLocalesOrder(Object.keys(selectedCurrent), preferences[Preferences.LocalesOrder]);
 
-  const updater = createRef();
-  if (selectedForce || !updater.current) {
-    updater.current = (updater.current || 1) + 1;
+  const updater = useRef(1);
+  if (selectedForce) {
+    updater.current = updater.current + 1;
   }
 
   return (
     <div className='g-translations' onCopy={onCopy}>
       {
-        locales.map(locale => (
-          <Translation key={buildFK(locale, selectedKey) + '#' + updater.current} selectedKey={selectedKey} deleted={deleted} locale={locale} current={selectedCurrent[locale]} previous={selectedPrevious[locale]}/>
-        ))
+        locales.map(locale => {
+
+          const renderKey = buildFK(locale, selectedKey) + '#' + updater.current;
+
+          return (
+            <Translation key={renderKey} selectedKey={selectedKey} deleted={deleted} locale={locale} current={selectedCurrent[locale]} previous={selectedPrevious[locale]}/>
+          )}
+        )
       }
     </div>
   )
