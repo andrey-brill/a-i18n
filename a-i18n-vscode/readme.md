@@ -4,5 +4,4 @@
 
 # TODO
 
-- make better example folders (build .i18n.js in xxl)
 - add shortcuts
