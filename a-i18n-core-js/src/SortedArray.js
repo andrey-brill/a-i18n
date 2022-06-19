@@ -1,29 +1,4 @@
 
-// NB! Don't touch
-// if returns -i then (i-1) is index where value should be placed
-// if returns i then i is index of the value
-function binarySortedIndex (array, value) {
-
-  let start = 0, end = array.length - 1;
-
-  while (start <= end){
-
-      let mid = Math.floor((start + end)/2);
-
-      if (array[mid] < value) {
-        start = mid + 1;
-      } else if (array[mid] > value) {
-        end = mid - 1;
-      } else if (array[mid] === value) {
-        return mid;
-      }
-  }
-
-  return - (1 + Math.max(start, end));
-}
-
-
-
 export class SortedArray {
 
   constructor() {
@@ -62,6 +37,8 @@ export class SortedArray {
     return false;
   }
 
+  // if returns -i then (i-1) is index where value should be placed
+  // if returns i then i is index of the value
   sortedIndexOf(value) {
     return binarySortedIndex(this.array, value);
   }
@@ -71,3 +48,28 @@ export class SortedArray {
   }
 
 }
+
+// NB! Don't touch
+// if returns -i then (i-1) is index where value should be placed
+// if returns i then i is index of the value
+function binarySortedIndex (array, value) {
+
+  let start = 0, end = array.length - 1;
+
+  while (start <= end){
+
+      let mid = Math.floor((start + end)/2);
+
+      if (array[mid] < value) {
+        start = mid + 1;
+      } else if (array[mid] > value) {
+        end = mid - 1;
+      } else if (array[mid] === value) {
+        return mid;
+      }
+  }
+
+  return - (1 + Math.max(start, end));
+}
+
+

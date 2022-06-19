@@ -1,5 +1,5 @@
 
-import { ErrorCodes, NotLoadedError, I18nError, NotResolvedError, DuplicateKeyError, UnappliedChangesError, KeyExistError, KeyNotExistError, NotUniqueI18nFilesError, InvalidKeyError, NoI18nJsFileError } from './Errors.js';
+import { NotLoadedError, NotResolvedError, DuplicateKeyError, KeyExistError, KeyNotExistError, NotUniqueI18nFilesError, InvalidKeyError, NoI18nJsFileError, InvalidOptionsError } from './Errors.js';
 import { simpleDebounce, detectLocale, isI18nFile, isI18nJsFile, getTime, unsafeValue, commentLine, valueLine, deleteLine, splitFK, buildFK, toBacklog, toPromise, strCompare, boolCompare, tCompare } from './Utils.js';
 import { CommentLine, ApprovedLine, NotApprovedLine, DeleteLine, KeyValueSeparator, AutoExport, ManualExport, TypeFile, DefaultI18n, KeyState, EmptyT } from './Constants.js';
 
@@ -28,7 +28,7 @@ export class Ai18n {
 
       actionFn = actionFn.bind(this);
       this[actionName] = (options) => {
-        console.log('call ', actionName, JSON.stringify(options || {}));
+        // console.log('call ', actionName, JSON.stringify(options || {}));
         return actionFn(options).catch(e => {
           this._config.errorHandler(e);
         });
@@ -134,7 +134,7 @@ export class Ai18n {
   _validateAction(options) {
 
     if (typeof options === 'function') {
-      throw new I18nError(ErrorCodes.InvalidOptions, `Options can't be a function.`);
+      throw new InvalidOptionsError();
     }
 
     if (!this.state.loaded) {
@@ -221,7 +221,6 @@ export class Ai18n {
       .then(() => {
 
         const notOptimizedFKs = this._changesFKs();
-        console.log('notOptimizedFKs', notOptimizedFKs.size);
         if (notOptimizedFKs.size === 0) {
           return true;
         }
@@ -233,12 +232,10 @@ export class Ai18n {
           if (tCompare(before[fullKey], after[fullKey])) {
             delete before[fullKey];
             delete after[fullKey];
-            console.log('DELETE', fullKey)
           }
         });
 
         const optimizedFKs = this._changesFKs();
-        console.log('optimizedFKs', optimizedFKs.size);
         if (notOptimizedFKs.size > 0 && optimizedFKs.size === 0) {
           return this._resetAllUpdates(); // if all changes reverted then removing backlog files
         } else {
@@ -434,7 +431,9 @@ export class Ai18n {
         this._onChange = options.onChange;
 
         const ignoreChangesTimeoutMs = 1000;
-        const debounceLoad = simpleDebounce(this.load, 300); // if several changes applied at the same time
+
+        const autoLoad = () => this.load().then(() => this._autoExport());
+        const debounceLoad = simpleDebounce(autoLoad, 300); // if several changes applied at the same time
 
         const unsubscribe = this._fs.watch(fileName => {
 
@@ -655,13 +654,8 @@ export class Ai18n {
         return exporter.save();
       })
       .then(exportResult => {
-
-        if (exportResult) {
-          this._config.exportHandler(exportResult, false);
-          return true;
-        }
-
-        return false;
+        this._config.exportHandler(exportResult, false);
+        return exportResult;
       })
       .catch(e => this._config.exportHandler(e, true) && false)
   }
@@ -820,7 +814,6 @@ export class Ai18n {
 
         if (sameLocale && sameKey) {
 
-          console.log('revert', fullKey);
           const t = this.state.origins[fullKey];
           const change = t ? commentLine(keyFK, t.comment) + '\n' + valueLine(t.approved, keyFK, t.value) : deleteLine(keyFK);
           nextChanges[localeFK] = change;

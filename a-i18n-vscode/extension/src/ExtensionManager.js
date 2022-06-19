@@ -9,6 +9,7 @@ import { Extension } from '../../core/constants.js';
 
 
 const NotInitializedText = 'A-i18n extension not initialized yet';
+const decoder = new TextDecoder();
 
 export class ExtensionManager extends Disposable {
 
@@ -23,9 +24,7 @@ export class ExtensionManager extends Disposable {
         if (isError) {
           errorHandler(result);
         } else {
-          if (result) {
-            vscode.window.showInformationMessage(result.toString());
-          }
+          vscode.window.showInformationMessage((result && typeof result === 'string') ? result : 'Translations exported.');
         }
       }
     }
@@ -83,6 +82,7 @@ export class ExtensionManager extends Disposable {
         .then(file => {
           if (file) {
             return vscode.workspace.fs.readFile(Uri.parse(toPath(folder) + file[0]))
+              .then(content => decoder.decode(content))
               .then(content => [folder, JSON.parse(content)]);
           } else {
             return null;
@@ -104,9 +104,6 @@ export class ExtensionManager extends Disposable {
         const managers = i18ns.map(i18n => this.createManager(i18n));
 
         this.nonActiveReason = null;
-
-        // TODO remove
-        this.openEditor();
 
         return Promise.all(managers.map(m => m.connect()));
       })

@@ -1,5 +1,6 @@
 
 import { CommentLine, ApprovedLine, DeleteLine } from './Constants.js';
+import { InvalidFormatError } from './Errors.js';
 
 
 export function parseLines(content = '') {
@@ -68,7 +69,7 @@ export function parseLines(content = '') {
   }
 
   if (startIndex < content.length) {
-    throw new Error('Not fully parsed content: ' + content);
+    throw new InvalidFormatError(content.substring(startIndex));
   }
 
   return lines;

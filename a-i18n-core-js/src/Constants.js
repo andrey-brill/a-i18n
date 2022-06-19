@@ -8,7 +8,8 @@ export const KeyValueSeparator = '=';
 export const FullKeySeparator = '='; // As key don't contains =, we can use '=' to split fullKey.
 
 export const I18n = '.i18n';
-export const DefaultI18n = 'en' + I18n;
+export const DefaultLocale = 'en';
+export const DefaultI18n = DefaultLocale + I18n;
 export const BacklogI18n = '@.i18n';
 export const I18nJs = '.i18n.js';
 export const I18nConfig = '.i18n.json';

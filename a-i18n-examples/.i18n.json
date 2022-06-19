@@ -1,5 +1,5 @@
 {
-  "./sm-i18n/": {
-    "autoExport": false
+  "./1-sm-i18n/": {
+    "autoExport": true
   }
 }

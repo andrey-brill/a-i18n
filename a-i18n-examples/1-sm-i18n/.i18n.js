@@ -1,7 +1,7 @@
 
 const { type, config, fs } = this;
 
-const path = config.exportPath || './texts/export/';
+const path = './dist/' + config.directory.replace('./', '');
 
 const files = {}
 
@@ -44,6 +44,9 @@ Object.assign(this, {
       .then(() => Promise.all(
         Object.keys(files)
           .map(fileName => fs.writeFile(path + fileName.replace('.i18n', '.json'), files[fileName]))
-      ));
+      ))
+      .then(() => {
+        return 'Exported files: ' + Object.keys(files).join(', ') + '.';
+      });
   }
 });

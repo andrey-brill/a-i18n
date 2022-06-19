@@ -65,7 +65,7 @@ export const TranslationsOrderModal = ({ onClose }) => {
       onClose={onClose}
       connector={connectorRef.current}
       value={value}
-      validation={isValid ? `Invalid line format. Use spaces as separators and locales in 'xx' or 'xx-XX' formats` : null}>
+      validation={isValid ? null : `Invalid line format. Use spaces as separators and locales in 'xx' or 'xx-XX' formats`}>
         <CheckBox action={Action.UpdateGlobalPreference} value={global} setValue={setGlobal}/>
     </ActionModal>
   );

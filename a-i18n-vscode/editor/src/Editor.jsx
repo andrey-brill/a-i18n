@@ -15,7 +15,7 @@ export const Editor = () => {
   useMessage((action, data) => {
     if (action === Action.State) {
       data.keys = Object.keys(data.keysInfo || {}).sort();
-      console.log(action, data);
+      // console.log(action, data);
       setState(data);
     }
   });

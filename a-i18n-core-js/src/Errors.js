@@ -4,13 +4,13 @@ import { KeyValueSeparator } from './Constants.js';
 
 export const ErrorCodes = {
   NotLoaded: 'NotLoaded',
-  I18nError: 'I18nError',
   DuplicateKey: 'DuplicateKey',
   NotResolvedError: 'NotResolvedError',
   UnappliedChanges: 'UnappliedChanges',
   KeyNotExist: 'KeyNotExist',
   KeyExist: 'KeyExist',
   InvalidPath: 'InvalidPath',
+  InvalidFormat: 'InvalidFormat',
   InvalidDirectory: 'InvalidDirectory',
   InvalidFile: 'InvalidFile',
   InvalidKey: 'InvalidKey',
@@ -39,6 +39,12 @@ class StateError extends I18nError {
   }
 }
 
+
+export class InvalidFormatError extends StateError {
+  constructor(rest) {
+    super(ErrorCodes.InvalidFormat, `Can't parse i18n content.\nInvalid content: ${rest}`);
+  }
+}
 export class DuplicateKeyError extends StateError {
   constructor(key) {
     super(ErrorCodes.DuplicateKey, `All i18n-keys must be unique.\nFound duplicated key: ${key}`);
@@ -64,9 +70,9 @@ export class NotLoadedError extends I18nError {
   }
 }
 
-export class UnappliedChangesError extends I18nError {
+export class InvalidOptionsError extends I18nError {
   constructor() {
-    super(ErrorCodes.UnappliedChanges, 'You need to apply changes first.');
+    super(ErrorCodes.InvalidOptions, `Options can't be a function.`);
   }
 }
 

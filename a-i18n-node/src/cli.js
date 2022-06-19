@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { I18n } from '../index.js';
+import { I18n } from './i18n.js';
 
 
 const [ _nodePath, _cliPath, ...commands ] = process.argv;
