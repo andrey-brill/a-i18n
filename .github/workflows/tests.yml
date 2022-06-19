@@ -13,10 +13,10 @@ jobs:
           node-version: '12'
       - run: cd ./a-i18n-core-js
       - run: npm install
-      - run: npm test:ci
+      - run: npm run test:ci
       - run: cd ../a-i18n-node
       - run: npm install
-      - run: npm test:ci
+      - run: npm run test:ci
 
       - name: Tests ✅
         if: ${{ success() }}
