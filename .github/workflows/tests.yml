@@ -15,13 +15,15 @@ jobs:
 
       - name: Test a-i18n-core-js 🔨
         working-directory: ./a-i18n-core-js
-        run: npm install
-        run: npm run test:ci
+        run: |
+          npm install
+          npm run test:ci
 
       - name: Test a-i18n-node 🔨
         working-directory: ./a-i18n-node
-        run: npm install
-        run: npm run test:ci
+        run:  |
+          npm install
+          npm run test:ci
 
       - name: Tests ✅
         if: ${{ success() }}
