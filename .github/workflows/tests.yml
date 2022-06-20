@@ -8,18 +8,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Test a-i18n-core-js
+      - name: Setup ⚙️
         uses: actions/setup-node@v1
-        working-directory: ./a-i18n-core-js
         with:
           node-version: '14'
+
+      - name: Test a-i18n-core-js 🔨
+        working-directory: ./a-i18n-core-js
         run: npm install
         run: npm run test:ci
 
-      - name: Test a-i18n-node
+      - name: Test a-i18n-node 🔨
         working-directory: ./a-i18n-node
-        with:
-          node-version: '14'
         run: npm install
         run: npm run test:ci
 
